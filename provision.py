@@ -16,17 +16,25 @@ def provision(driver, nodeType, nodeSize, image, zone):
 		nodeID = len(existing_nodes) + 1
 
 	# Create a new node
-	nodeName = "agenp" + nodeID.str();
+	nodeName = "agenp" + str(nodeID)
 
 	# Create a boot disk
-	bootDisk = driver.create_volume(nodeSize, nodeName, location=zone);
+	bootDisk = driver.create_volume(nodeSize, nodeName, location=zone)
 
 	# Provision a disk
-	node = driver.create_node(nodeName, nodeSize, image, location=zone, ex_network='default', ex_boot_disk=bootDisk)
+	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk)
 
 	# Write JSON file and upload to gs://agenp-storage/
-	with open(nodeName + ".json", "w") as file:
-		dumps({'Name' : nodeName, "Disk" : nodeName, "Type" : nodeSize, "Image" : imageName, "Location" : zone, "DiskSize" : diskSize})
+	nodeData = [{ "Name" : nodeName,
+		      "Disk" : nodeName,
+		      "Type" : nodeSize,
+		      "Image": imageName,
+		      "Location": zone,
+		      "DiskSize": diskSize}]
+
+	jsonFile = open(nodeName + ".json", "w")
+	jsonFile.write(json.dumps(nodeData))
+	jsonFile.close
 
 	os.system('gsutil cp ./' + nodeName + '.json gs://agenp-storage/')
 	return node
