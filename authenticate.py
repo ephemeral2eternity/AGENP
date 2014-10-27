@@ -11,5 +11,5 @@ def authenticate(authFile):
 	ComputeEngine = get_driver(Provider.GCE)
 	# Datacenter is set to 'us-central1-a' as an example, but can be set to any
 	# zone, like 'us-central1-b' or 'europe-west1-a'
-	driver = ComputeEngine(authData["Account"], authData["Secret"], datacenter=authData["Zone"], project=authData["Project"])
+	driver = ComputeEngine(authData["Account"], authData["Secret"], project=authData["Project"])
 	return driver

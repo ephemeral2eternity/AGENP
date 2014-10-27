@@ -1,0 +1,7 @@
+{
+	"Name" : "agenp01",
+	"Type" : "f1-micro",
+	"Image": "debian-7-backports",
+	"Zone" : "europe-west1-b",
+	"Disk" : 20
+}
