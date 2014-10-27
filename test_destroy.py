@@ -10,7 +10,9 @@ driver = authenticate("auth.json")
 # list_zones(driver)
 
 # Create a new node
-nodeName = "agenp01";
-zone = "europe-west1-b"
+# nodeName = "agenp1";
+# zone = "europe-west1-b"
+nodeName = "agenp1"
+zone = "us-central1-a"
 
 destroy(driver, nodeName, zone)

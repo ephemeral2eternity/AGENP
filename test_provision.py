@@ -14,8 +14,8 @@ driver = authenticate("auth.json")
 # Instances to create
 nodeType = "f1-micro"
 nodeSize = 20
-image = "backports-debian-7-wheezy-v20141021"
-zone = "europe-west1-b"
+image = "agenp"
+zone = "us-central1-a"
 
 # Provision node
 node = provision(driver, nodeType, nodeSize, image, zone)
