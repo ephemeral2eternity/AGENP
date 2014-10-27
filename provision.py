@@ -1,23 +1,32 @@
 import json
+import os
 from pprint import pprint
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 from authenticate import *
-from list_zones import *
 
-# Get the driver from an authentication json file which defines the service account, pem file path, datacenter, and project.
-driver = authenticate("auth.json")
-# list_zones(driver)
+def provision(driver, nodeType, nodeSize, image, zone):
+	# List all instances
+	existing_nodes = driver.list_nodes()
 
-# Create a new node
-nodeName = "agenp01";
-nodeSize = "f1-micro"
-imageName = "backports-debian-7-wheezy-v20141021"
-zone = "europe-west1-b"
-diskSize = 20
+	# Get the id of the new node.
+	if not existing_nodes:
+		nodeID = 1
+	else:
+		nodeID = len(existing_nodes) + 1
 
-# Create a boot disk
-bootDisk = driver.create_volume(diskSize, nodeName, location=zone);
+	# Create a new node
+	nodeName = "agenp" + nodeID.str();
 
-# Provision a disk
-node_agenp01 = driver.create_node(nodeName, nodeSize, imageName, location=zone, ex_network='default', ex_boot_disk=bootDisk)
+	# Create a boot disk
+	bootDisk = driver.create_volume(nodeSize, nodeName, location=zone);
+
+	# Provision a disk
+	node = driver.create_node(nodeName, nodeSize, image, location=zone, ex_network='default', ex_boot_disk=bootDisk)
+
+	# Write JSON file and upload to gs://agenp-storage/
+	with open(nodeName + ".json", "w") as file:
+		dumps({'Name' : nodeName, "Disk" : nodeName, "Type" : nodeSize, "Image" : imageName, "Location" : zone, "DiskSize" : diskSize})
+
+	os.system('gsutil cp ./' + nodeName + '.json gs://agenp-storage/')
+	return node
