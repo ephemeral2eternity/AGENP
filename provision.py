@@ -3,8 +3,6 @@ import os
 from pprint import pprint
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
-from authenticate import *
-from get_service_account import *
 
 def provision(driver, nodeType, nodeSize, image, zone):
 	# List all instances
