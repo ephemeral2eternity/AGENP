@@ -29,7 +29,7 @@ def mpd_parser(server_address, videoName):
 					segLength = seg.get('duration')
 				representations.append(dict(id=repID, type=repType, name=segName, bw=repBW, initialization=initSeg, start=segStart, length=segLength))
 
-	for item in representations:
-		print item
+	# for item in representations:
+	#	print item
 
 	return representations
