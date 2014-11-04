@@ -1,6 +1,13 @@
 import os
 import requests
+import re
 import xml.etree.ElementTree as ET
+
+def num(s):
+	try:
+		return int(s)
+	except ValueError:
+		return float(s)
 
 def mpd_parser(server_address, videoName):
 
@@ -13,9 +20,11 @@ def mpd_parser(server_address, videoName):
 	mpdString = str(r.content)
 	# print mpdString
 
-	representations = []
+	representations = {}
 
 	root = ET.fromstring(mpdString)
+	mediaLength = num(root.get('mediaPresentationDuration')[2:-1])
+	minBufferTime = num(root.get('minBufferTime')[2:-1])
 	for period in root:
 		for adaptSet in period: 
 			for rep in adaptSet:
@@ -27,9 +36,10 @@ def mpd_parser(server_address, videoName):
 					segName = seg.get('media')
 					segStart = seg.get('startNumber')
 					segLength = seg.get('duration')
-				representations.append(dict(id=repID, type=repType, name=segName, bw=repBW, initialization=initSeg, start=segStart, length=segLength))
+					timescale = seg.get('timescale')
+				representations[repID] = dict(mtype=repType, name=segName, bw=repBW, initialization=initSeg, start=segStart, length=segLength, timescale=timescale)
 
 	# for item in representations:
 	#	print item
 
-	return representations
+	return {'representations' : representations, 'mediaDuration':mediaLength, 'minBufferTime': minBufferTime}

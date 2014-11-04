@@ -1,8 +1,12 @@
+import os
 import urllib2
 
-def download_chunk(server_addr, videoName, repID, chunk_name):
-	url = 'http://' + server_addr + '/' + videoName + '/' + repID + '/' +chunk_name
-	u = urllib2.urlopen(url)
+def download_chunk(server_addr, vidName, chunk_name):
+	url = 'http://' + server_addr + '/' + vidName + '/' + chunk_name
+	try:
+		u = urllib2.urlopen(url)
+	except:
+		return 0
 
 	localCache = './tmp/'
 
@@ -12,12 +16,12 @@ def download_chunk(server_addr, videoName, repID, chunk_name):
 	except:
         	os.mkdir(localCache)
 
-	localFile = localCache + chunk_name
+	localFile = localCache + chunk_name.replace('/', '-')
 
 	f = open(localFile, 'wb')
 	meta = u.info()
 	file_size = int(meta.getheaders("Content-Length")[0])
-	print "Downloading: %s Bytes: %s" % (localMPDFile, file_size)
+	print "Downloading: %s Bytes: %s" % (localFile, file_size)
 
 	file_size_dl = 0
 	block_sz = 8192
@@ -30,6 +34,7 @@ def download_chunk(server_addr, videoName, repID, chunk_name):
 	f.write(buffer)
 	status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
 	status = status + chr(8)*(len(status)+1)
-	print status,
+	# print status,
 
 	f.close()
+	return file_size
