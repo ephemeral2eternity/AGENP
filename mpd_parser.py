@@ -23,7 +23,18 @@ def mpd_parser(server_address, videoName):
 	representations = {}
 
 	root = ET.fromstring(mpdString)
-	mediaLength = num(root.get('mediaPresentationDuration')[2:-1])
+	mediaLengthStr = root.get('mediaPresentationDuration')[2:]
+	mlA = re.findall(r'\d+', mediaLengthStr)
+	if len(mlA) == 3:
+		mediaLength = num(mlA[0])*3600 + num(mlA[1])*60 + num(mlA[2])
+	elif len(mlA) == 2:
+		mediaLength = num(mlA[0])*60 + num(mlA[1])
+	elif len(mlA) == 1:
+		mediaLength = num(mlA[0])
+	else:
+		print 'Parsing mpd file error, unrecognized mediaPresentationDuration!'
+		sys.exit(1)
+
 	minBufferTime = num(root.get('minBufferTime')[2:-1])
 	for period in root:
 		for adaptSet in period: 

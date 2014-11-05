@@ -26,8 +26,8 @@ def provision(driver, nodeType, nodeSize, image, zone):
 	# Provision a disk
 	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk, use_existing_disk=True)
 
-	# Write JSON file and upload to gs://agenp-storage/
+	# Write JSON file and upload to gs://agens-storage/
 	os.system('gcloud compute instances describe ' + nodeName + ' --format json' + ' --zone ' + zone + ' > ' + nodeName + '.json')
 
-	os.system('gsutil cp ./' + nodeName + '.json gs://agenp-storage/')
+	os.system('gsutil cp ./' + nodeName + '.json gs://agens-storage/')
 	return node
