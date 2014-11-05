@@ -7,6 +7,7 @@ import datetime
 import shutil
 import math
 import json
+import requests
 from operator import itemgetter
 from mpd_parser import *
 from download_chunk import *
@@ -50,6 +51,18 @@ def num(s):
 # server_addr = '130.211.49.19'
 # videoName = 'st'
 # clientID = 'Chen'
+
+def averageQoE(client_trace):
+	mn_Qoe = 0
+	if len(client_trace) < 5:
+		for chunk_tr in client_trace:
+			mn_QoE += chunk_tr["QoE"]
+		mn_Qoe = mn_Qoe / len(client_trace)
+	else:
+		for chunk_tr in client_trace[-5:]
+			mn_Qoe += chunk_tr["QoE"] / 5
+	return mn_Qoe
+
 
 def client_agent(server_addr, videoName, clientID):
 	rsts = mpd_parser(server_addr, videoName)
@@ -127,7 +140,13 @@ def client_agent(server_addr, videoName, clientID):
 		print "|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|"
 		
 		client_tr[chunkNext] = dict(Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime)
-		
+
+		# Count Previous QoE average
+		if chunkNext%5 == 0:
+			mnQoE = averageQoE(client_tr)
+			r = requests.get("http://" + server_addr + "/QoE?" + str(mn_Qoe))
+			print r
+
 		# Update iteration information
 		curBuffer = curBuffer + chunkLen
 		if curBuffer > 30:

@@ -7,6 +7,7 @@
  
 
 import string,cgi,time
+import json
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os # os. path
@@ -14,7 +15,10 @@ import os # os. path
 CWD = os.path.abspath('.')
 ## print CWD
 PORT = 8615     
-UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server     
+UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server
+QoE = json.loads(open("./info/QoE.json").read())
+agentID = "agenp-01"
+delta = 0.5
 
 def make_index( relpath ):     
     abspath = os.path.abspath(relpath) # ; print abspath
@@ -51,6 +55,16 @@ def welcome_page():
             </html>"
     return page
 
+def num(s):
+        try:
+                return int(s)
+        except ValueError:
+                return float(s)
+
+def getQoE(qoePath):
+    q = qoePath.split("?", 2)[1]
+    return num(q)
+
 # -----------------------------------------------------------------------
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -71,7 +85,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(page)
                 return     
 
-            if self.path.endswith(".html"):
+            elif self.path.endswith(".html"):
                 ## print curdir + sep + self.path
                 f = open(curdir + sep + self.path)
  
@@ -83,12 +97,22 @@ class MyHandler(BaseHTTPRequestHandler):
                 f.close()
                 return
                 
-            if self.path.endswith(".esp"):   #our dynamic content
+            elif self.path.endswith(".esp"):   #our dynamic content
                 self.send_response(200)
                 self.send_header('Content-type',    'text/html')
                 self.end_headers()
                 self.wfile.write("hey, today is the " + str(time.localtime()[7]))
                 self.wfile.write(" day in the year " + str(time.localtime()[0]))
+                return
+
+            elif self.path.startswith("/QoE?"):   #our dynamic content
+                client_qoe = getQoE(self.path)
+                update_qoe = client_qoe * delta + num(QoE[agentID]) * (1 - delta)
+                self.send_response(200)
+                self.send_header('Content-type',    'text/html')
+                self.send_header('Params', str(update_qoe))
+                self.end_headers()
+                self.wfile.write("Updated QoE is : " + str(update_qoe))
                 return
 
             else : # default: just send the file     
