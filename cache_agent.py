@@ -108,9 +108,10 @@ class MyHandler(BaseHTTPRequestHandler):
             elif self.path.startswith("/QoE?"):   #our dynamic content
                 client_qoe = getQoE(self.path)
                 update_qoe = client_qoe * delta + num(QoE[agentID]) * (1 - delta)
+                QoE[agentID] = update_qoe
                 self.send_response(200)
                 self.send_header('Content-type',    'text/html')
-                self.send_header('Params', str(update_qoe))
+                self.send_header('Params', json.dumps(QoE))
                 self.end_headers()
                 self.wfile.write("Updated QoE is : " + str(update_qoe))
                 return

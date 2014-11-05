@@ -53,15 +53,15 @@ def num(s):
 # clientID = 'Chen'
 
 def averageQoE(client_trace):
-	mn_Qoe = 0
+	mn_QoE = 0
 	if len(client_trace) < 5:
 		for chunk_tr in client_trace:
-			mn_QoE += chunk_tr["QoE"]
-		mn_Qoe = mn_Qoe / len(client_trace)
+			mn_QoE += client_trace[chunk_tr]["QoE"]
+		mn_QoE = mn_QoE / len(client_trace)
 	else:
-		for chunk_tr in client_trace[-5:]
-			mn_Qoe += chunk_tr["QoE"] / 5
-	return mn_Qoe
+		for chunk_tr in client_trace.keys()[-5:]:
+			mn_QoE += client_trace[chunk_tr]["QoE"] / 5
+	return mn_QoE
 
 
 def client_agent(server_addr, videoName, clientID):
@@ -144,8 +144,9 @@ def client_agent(server_addr, videoName, clientID):
 		# Count Previous QoE average
 		if chunkNext%5 == 0:
 			mnQoE = averageQoE(client_tr)
-			r = requests.get("http://" + server_addr + "/QoE?" + str(mn_Qoe))
-			print r
+			r = requests.get("http://" + server_addr + "/QoE?" + str(mnQoE))
+			server_qoe = r.headers['Params']
+			print "[AGENP] Received Server QoE is :" + server_qoe
 
 		# Update iteration information
 		curBuffer = curBuffer + chunkLen
