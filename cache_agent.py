@@ -13,7 +13,7 @@ import os # os. path
  
 CWD = os.path.abspath('.')
 ## print CWD
-PORT = 8080     
+PORT = 8615     
 UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server     
 
 def make_index( relpath ):     

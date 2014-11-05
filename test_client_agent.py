@@ -2,7 +2,7 @@
 
 from client_agent import *
 
-server_addr = '130.211.49.19'
+server_addr = '130.211.49.19:8615'
 videoName = 'BBB'
 clientID = 'Chen'
 

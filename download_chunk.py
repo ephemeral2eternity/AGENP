@@ -3,6 +3,7 @@ import urllib2
 
 def download_chunk(server_addr, vidName, chunk_name):
 	url = 'http://' + server_addr + '/' + vidName + '/' + chunk_name
+	# print "download url: " + url
 	try:
 		u = urllib2.urlopen(url)
 	except:

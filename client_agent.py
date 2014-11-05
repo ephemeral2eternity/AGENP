@@ -22,7 +22,7 @@ def findRep(sortedVidBWS, est_bw_val, bufferSz, minBufferSz):
 	if bufferSz < minBufferSz:
 		j = max(j-1, 0)
 	elif bufferSz > 20:
-		j = min(j + 1, len(sortedVidBWS))
+		j = min(j + 1, len(sortedVidBWS) - 1)
 	
 	repID = sortedVidBWS[j][0]
 	return repID
