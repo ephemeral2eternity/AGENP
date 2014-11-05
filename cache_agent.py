@@ -40,13 +40,13 @@ def make_index( relpath ):
 
 def welcome_page():
     page = "<html>  \
-                <head>  \
+                <title>  \
                     AGENP Cache Agent \
-                </head> \
+                </title> \
                 <body>  \
                     <h1> Welcome!! </h1>\
-                    <p>This is the cache agent in AGENS system <\p>\
-                    <p>You can use /videos to show all available videos in local cache! <\p>\
+                    <p>This is the cache agent in AGENS system </p>\
+                    <p>You can use '/videos' to show all available videos in local cache! </p>\
                 </body> \
             </html>"
     return page
@@ -93,7 +93,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             else : # default: just send the file     
                 # filepath = self.path[1:] + '/videos/' # remove leading '/'     
-                filepath = '../videos/' + self.path[1:]
+                filepath = '../videos' + self.path[1:]
                 f = open( os.path.join(CWD, filepath), 'rb' ) 
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
