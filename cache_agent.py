@@ -46,6 +46,7 @@ def welcome_page():
                 <body>  \
                     <h1> Welcome!! </h1>\
                     <p>This is the cache agent in AGENS system <\p>\
+                    <p>You can use /videos to show all available videos in local cache! <\p>\
                 </body> \
             </html>"
     return page
@@ -60,9 +61,10 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(page)
+                return
 
             elif self.path.startswith('/videos'):   
-                page = make_index( '../videos' )
+                page = make_index( self.path.replace('/videos', '../videos') )
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
