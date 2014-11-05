@@ -22,8 +22,9 @@ def make_index( relpath ):
      
     rellist = []     
     for fname in flist :     
-        relname = os.path.join(relpath, fname)
-        rellist.append(relname)
+        # relname = os.path.join(relpath, fname)
+        # rellist.append(relname)
+        rellist.append(fname)
      
      # print rellist
     inslist = []     
@@ -60,7 +61,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(page)
 
-            elif self.path == '/videos':   
+            elif self.path.startswith('/videos'):   
                 page = make_index( '../videos' )
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -84,13 +85,13 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type',    'text/html')
                 self.end_headers()
-                self.wfile.write("hey, today is the" + str(time.localtime()[7]))
+                self.wfile.write("hey, today is the " + str(time.localtime()[7]))
                 self.wfile.write(" day in the year " + str(time.localtime()[0]))
                 return
 
             else : # default: just send the file     
                 # filepath = self.path[1:] + '/videos/' # remove leading '/'     
-                filepath = '../videos/'
+                filepath = '../videos/' + self.path[1:]
                 f = open( os.path.join(CWD, filepath), 'rb' ) 
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
