@@ -113,7 +113,12 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type',    'text/html')
                 self.send_header('Params', json.dumps(QoE))
                 self.end_headers()
-                self.wfile.write("Updated QoE is : " + str(update_qoe))
+                self.wfile.write("Updated QoE is : " + json.dumps(QoE))
+
+                # Update QoE.json file
+                with open("./info/QoE.json", 'w') as qoeFile:
+                    json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
+
                 return
 
             else : # default: just send the file     
