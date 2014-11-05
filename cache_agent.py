@@ -13,7 +13,7 @@ import os # os. path
  
 CWD = os.path.abspath('.')
 ## print CWD
-# PORT = 8080     
+PORT = 8080     
 UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server     
 
 def make_index( relpath ):     
@@ -37,18 +37,37 @@ def make_index( relpath ):
      
     return ret
 
+def welcome_page():
+    page = "<html>  \
+                <head>  \
+                    AGENP Cache Agent \
+                </head> \
+                <body>  \
+                    <h1> Welcome!! </h1>\
+                    <p>This is the cache agent in AGENS system <\p>\
+                </body> \
+            </html>"
+    return page
+
 # -----------------------------------------------------------------------
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:   
-            if self.path == '/' :     
-                page = make_index( '.' )
+            if self.path == '/' :
+                page = welcome_page()
                 self.send_response(200)
-                self.send_header('Content-type',    'text/html')
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(page)
+
+            elif self.path == '/videos'     
+                page = make_index( '../videos' )
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(page)
                 return     
- 
+
             if self.path.endswith(".html"):
                 ## print curdir + sep + self.path
                 f = open(curdir + sep + self.path)
@@ -70,8 +89,8 @@ class MyHandler(BaseHTTPRequestHandler):
                 return
 
             else : # default: just send the file     
-                filepath = self.path[1:] # remove leading '/'     
-             
+                # filepath = self.path[1:] + '/videos/' # remove leading '/'     
+                filepath = '../videos/'
                 f = open( os.path.join(CWD, filepath), 'rb' ) 
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
@@ -135,8 +154,6 @@ class MyHandler(BaseHTTPRequestHandler):
  
 
             self.end_headers()
- 
-
             
             self.wfile.write("<HTML><HEAD></HEAD><BODY>POST OK.<BR><BR>");
             self.wfile.write( "File uploaded under name: " + os.path.split(fullname)[1] );
