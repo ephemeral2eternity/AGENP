@@ -1,13 +1,10 @@
 #!/usr/bin/python
- 
 # Copyright Jon Berg , turtlemeat.com
- 
-
 # Modified by nikomu @ code.google.com     
  
-
 import string,cgi,time
 import json
+from apscheduler.schedulers.background import BackgroundScheduler
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os # os. path
@@ -19,6 +16,7 @@ UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of
 QoE = json.loads(open("./info/QoE.json").read())
 agentID = "agenp-01"
 delta = 0.5
+previousBytes = -1
 
 def make_index( relpath ):     
     abspath = os.path.abspath(relpath) # ; print abspath
@@ -200,8 +198,28 @@ class MyHandler(BaseHTTPRequestHandler):
             print e
             self.send_error(404,'POST to "%s" failed: %s' % (self.path, str(e)) )
 
+def get_tx_bytes():
+	file_txbytes = open('/sys/class/net/eth0/statistics/tx_bytes')
+	lines = file_txbytes.readlines()
+	tx_bytes = int(lines[0])
+	return tx_bytes
+
+def bw_monitor():
+	global previousBytes
+	if previousBytes < 0:
+		previousBytes = get_tx_bytes()
+	else:
+		curBytes = get_tx_bytes()
+		out_bw = (curBytes - previousBytes)/5
+		previousBytes = curBytes
+		print "Outbound bandwidth is " + str(out_bw) + " bytes/second!"
+
 def main():
     try:
+	sched = BackgroundScheduler()
+	sched.add_job(bw_monitor, 'interval', seconds=5)
+	sched.start()
+
         server = HTTPServer(('', PORT), MyHandler)
         print 'started httpserver...'
         server.serve_forever()
@@ -209,6 +227,7 @@ def main():
     except KeyboardInterrupt:
         print '^C received, shutting down server'
         server.socket.close()
+	sched.shutdown()
 
 if __name__ == '__main__':
  
