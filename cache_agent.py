@@ -172,7 +172,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 def main():
     try:
-        server = HTTPServer(('', 8080), MyHandler)
+        server = HTTPServer(('', PORT), MyHandler)
         print 'started httpserver...'
         server.serve_forever()
  
