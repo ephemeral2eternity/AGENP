@@ -60,7 +60,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(page)
 
-            elif self.path == '/videos'     
+            elif self.path == '/videos':   
                 page = make_index( '../videos' )
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -167,7 +167,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 def main():
     try:
-        server = HTTPServer(('', PORT), MyHandler)
+        server = HTTPServer(('', 8080), MyHandler)
         print 'started httpserver...'
         server.serve_forever()
  
