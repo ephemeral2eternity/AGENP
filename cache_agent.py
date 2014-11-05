@@ -94,10 +94,12 @@ class MyHandler(BaseHTTPRequestHandler):
             else : # default: just send the file     
                 # filepath = self.path[1:] + '/videos/' # remove leading '/'     
                 filepath = '../videos' + self.path
-                f = open( os.path.join(CWD, filepath), 'rb' ) 
+                fileSz = os.path.getsize(filepath)
+                f = open( os.path.join(CWD, filepath), 'rb' )
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
                 self.send_header('Content-type',    'application/octet-stream')
+                self.send_header('Content-Length', str(fileSz))
                 self.end_headers()
                 self.wfile.write(f.read())
                 f.close()
