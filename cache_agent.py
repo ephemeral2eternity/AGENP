@@ -93,7 +93,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             else : # default: just send the file     
                 # filepath = self.path[1:] + '/videos/' # remove leading '/'     
-                filepath = '../videos' + self.path[1:]
+                filepath = '../videos' + self.path
                 f = open( os.path.join(CWD, filepath), 'rb' ) 
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
