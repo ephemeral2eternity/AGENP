@@ -48,10 +48,6 @@ def num(s):
         except ValueError:
                 return float(s)
 
-# server_addr = '130.211.49.19'
-# videoName = 'st'
-# clientID = 'Chen'
-
 def averageQoE(client_trace):
 	mn_QoE = 0
 	if len(client_trace) < 5:
@@ -63,9 +59,53 @@ def averageQoE(client_trace):
 			mn_QoE += client_trace[chunk_tr]["QoE"] / 5
 	return mn_QoE
 
+# ================================================================================
+# Query cache agent about how it observes user experiences with all servers
+# @input : cache_agent --- The cache agent the user is closest to
+# @return: qoe_vector --- QoEs of all servers observed from cache_agent
+# ================================================================================
+def query_QoE(cache_agent):
+	r = requests.get("http://" + cache_agent + "/QoE?query")
+	qoe_vector = json.loads(r.headers['Params'])
+	return qoe_vector
 
-def client_agent(server_addr, videoName, clientID):
-	rsts = mpd_parser(server_addr, videoName)
+# ================================================================================
+# Upload user experiences with a candidate server to cache agent
+# @input : cache_agent --- The cache agent the user is closest to
+#	   qoe --- User quality experiences with server denoted by server_name over
+#		   5 chunks
+#	   server_name --- the name of the server the user is downloading chunks from
+# @return: qoe_vector --- QoEs of all servers observed from cache_agent
+# ================================================================================
+def update_QoE(cache_agent, qoe, server_name):
+	r = requests.get("http://" + cache_agent + "/QoE?" + "q=" + str(qoe) + "&s=" + server_name)
+	qoe_vector = json.loads(r.headers['Params'])
+	return qoe_vector
+
+# ================================================================================
+# Read candidate server QoE from QoE vectors
+# @input : qoe_vector --- QoE Vector obtained from cache agent
+#	   server_addrs --- Candidate servers {name:ip} to download a videos
+# @return: srv_qoe --- QoEs of candidate servers {srv:qoe}
+# ================================================================================
+def get_server_QoE(qoe_vector, server_addrs):
+	srv_qoe = {}
+	for srv_name in server_addrs.keys():
+		if srv_name not in qoe_vector.keys():
+			print "[AGENP-ERROR] Input server name " + srv_name + " does not exist!!!"
+			sys.exit(1)
+		srv_qoe[srv_name] = qoe_vector[srv_name]
+	return srv_qoe
+		
+def client_agent(cache_agent, server_addrs, videoName, clientID):
+	# Initialize servers' qoe
+	qoe_vector = query_QoE(cache_agent)
+	server_qoes = get_server_QoE(qoe_vector, server_addrs)
+
+	# Selecting a server with maximum QoE
+	selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+
+	rsts = mpd_parser(selected_srv, videoName)
 	vidLength = int(rsts['mediaDuration'])
 	minBuffer = num(rsts['minBufferTime'])
 	reps = rsts['representations']
@@ -97,8 +137,8 @@ def client_agent(server_addr, videoName, clientID):
 	chunk_download = 0
 	loadTS = time.time()
 	print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
-	achunk_sz = download_chunk(server_addr, videoName, audioInit)
-	vchunk_sz = download_chunk(server_addr, videoName, vidInit)
+	achunk_sz = download_chunk(selected_srv, videoName, audioInit)
+	vchunk_sz = download_chunk(selected_srv, videoName, vidInit)
 	startTS = time.time()
 	print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
 	est_bw = (achunk_sz + vchunk_sz) * 8 / (startTS - loadTS)
@@ -116,8 +156,8 @@ def client_agent(server_addr, videoName, clientID):
 		auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
 		# print "[AGENP] Download chunk: #" + str(chunkNext) + " at representation " + nextRep
-		achunk_sz = download_chunk(server_addr, videoName, auChunk)
-		vchunk_sz = download_chunk(server_addr, videoName, vidChunk)
+		achunk_sz = download_chunk(selected_srv, videoName, auChunk)
+		vchunk_sz = download_chunk(selected_srv, videoName, vidChunk)
 		curTS = time.time()
 		est_bw = (achunk_sz + vchunk_sz) * 8 / (curTS - loadTS)
 		# print "[AGENP] Received chunk # " + str(chunkNext) + " at " + datetime.datetime.fromtimestamp(int(curTS)).strftime("%H:%M:%S")
@@ -144,9 +184,11 @@ def client_agent(server_addr, videoName, clientID):
 		# Count Previous QoE average
 		if chunkNext%5 == 0:
 			mnQoE = averageQoE(client_tr)
-			r = requests.get("http://" + server_addr + "/QoE?" + str(mnQoE))
-			server_qoe = r.headers['Params']
-			print "[AGENP] Received Server QoE is :" + server_qoe
+			qoe_vector = update_QoE(cache_agent, selected_srv, mnQoE)
+			server_qoes = get_server_QoE(qoe_vector, server_addrs)
+			# Selecting a server with maximum QoE
+			selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoe)
 
 		# Update iteration information
 		curBuffer = curBuffer + chunkLen
