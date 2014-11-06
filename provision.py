@@ -4,6 +4,14 @@ from pprint import pprint
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 
+def find_maxID(existing_nodes):
+	ids = []
+	for node in existing_nodes:
+		node_id = int(node.name[-2:])
+		ids.append(node_id)
+	max_id = max(ids)
+	return max_id
+
 def provision(driver, nodeType, nodeSize, image, zone):
 	# List all instances
 	existing_nodes = driver.list_nodes()
@@ -12,10 +20,10 @@ def provision(driver, nodeType, nodeSize, image, zone):
 	if not existing_nodes:
 		nodeID = 1
 	else:
-		nodeID = len(existing_nodes) + 1
+		nodeID = find_maxID(existing_nodes) + 1
 
 	# Create a new node
-	nodeName = "agenp" + str(nodeID)
+	nodeName = "agenp-" + str(nodeID).zfill(2)
 
 	# Get the image
 	imageFile = driver.ex_get_image(image)
@@ -27,7 +35,6 @@ def provision(driver, nodeType, nodeSize, image, zone):
 	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk, use_existing_disk=True)
 
 	# Write JSON file and upload to gs://agens-storage/
-	os.system('gcloud compute instances describe ' + nodeName + ' --format json' + ' --zone ' + zone + ' > ' + nodeName + '.json')
-
-	os.system('gsutil cp ./' + nodeName + '.json gs://agens-storage/')
+	# os.system('gcloud compute instances describe ' + nodeName + ' --format json' + ' --zone ' + zone + ' > ' + nodeName + '.json')
+	# os.system('gsutil cp ./' + nodeName + '.json gs://agens-storage/')
 	return node
