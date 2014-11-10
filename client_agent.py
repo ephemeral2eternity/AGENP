@@ -146,6 +146,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	chunk_download = 0
 	loadTS = time.time()
 	print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
+	print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
 	achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
 	vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
 	startTS = time.time()
@@ -198,7 +199,8 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 			# Selecting a server with maximum QoE
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 			selected_srv_ip = server_addrs[selected_srv]
-			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoe)
+			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
+			print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
 
 		# Update iteration information
 		curBuffer = curBuffer + chunkLen
