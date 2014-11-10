@@ -111,7 +111,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	server_qoes = get_server_QoE(qoe_vector, server_addrs)
 
 	# Selecting a server with maximum QoE
-	selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+	selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 	selected_srv_ip = server_addrs[selected_srv]
 
 	rsts = mpd_parser(selected_srv, videoName)
@@ -196,7 +196,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 			qoe_vector = update_QoE(cache_agent_ip, selected_srv, mnQoE)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs)
 			# Selecting a server with maximum QoE
-			selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 			selected_srv_ip = server_addrs[selected_srv]
 			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoe)
 
