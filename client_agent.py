@@ -193,7 +193,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 		# Count Previous QoE average
 		if chunkNext%5 == 0:
 			mnQoE = averageQoE(client_tr)
-			qoe_vector = update_QoE(cache_agent_ip, selected_srv, mnQoE)
+			qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs)
 			# Selecting a server with maximum QoE
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
