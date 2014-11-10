@@ -106,7 +106,7 @@ def get_server_QoE(qoe_vector, server_addrs):
 # ================================================================================
 def client_agent(cache_agent, server_addrs, videoName, clientID):
 	# Initialize servers' qoe
-	cache_agenp_ip = server_addrs[cache_agent]
+	cache_agent_ip = server_addrs[cache_agent]
 	qoe_vector = query_QoE(cache_agent_ip)
 	server_qoes = get_server_QoE(qoe_vector, server_addrs)
 
