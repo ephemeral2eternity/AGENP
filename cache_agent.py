@@ -69,8 +69,8 @@ def getQoE(params):
 
 def answerQoE(handler):
 	handler.send_response(200)
-	handler.send_headers('Content-type', 'text/html')
-	handler.send_headers('Params', json.dumps(QoE))
+	handler.send_header('Content-type', 'text/html')
+	handler.send_header('Params', json.dumps(QoE))
 	handler.end_headers()
 	handler.wfile.write("Updated QoE is: " + json.dumps(QoE))
 
