@@ -78,7 +78,7 @@ def query_QoE(cache_agent):
 # @return: qoe_vector --- QoEs of all servers observed from cache_agent
 # ================================================================================
 def update_QoE(cache_agent, qoe, server_name):
-	r = requests.get("http://" + cache_agent + "/QoE?" + "q=" + str(qoe) + "&s=" + server_name)
+	r = requests.get("http://" + cache_agent + "/QoE?update&" + "q=" + str(qoe) + "&s=" + server_name)
 	qoe_vector = json.loads(r.headers['Params'])
 	return qoe_vector
 
@@ -96,14 +96,23 @@ def get_server_QoE(qoe_vector, server_addrs):
 			sys.exit(1)
 		srv_qoe[srv_name] = qoe_vector[srv_name]
 	return srv_qoe
-		
+	
+# ================================================================================
+# Client agent to play the video
+# @input : cache_agent --- Cache agent that is closest to the client
+#	   server_addrs --- Candidate servers {name:ip} to download a videos
+#	   videoName --- The name of the video the user is requesting
+#	   clientID --- The ID of client.
+# ================================================================================
 def client_agent(cache_agent, server_addrs, videoName, clientID):
 	# Initialize servers' qoe
-	qoe_vector = query_QoE(cache_agent)
+	cache_agenp_ip = server_addrs[cache_agent]
+	qoe_vector = query_QoE(cache_agent_ip)
 	server_qoes = get_server_QoE(qoe_vector, server_addrs)
 
 	# Selecting a server with maximum QoE
 	selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+	selected_srv_ip = server_addrs[selected_srv]
 
 	rsts = mpd_parser(selected_srv, videoName)
 	vidLength = int(rsts['mediaDuration'])
@@ -137,8 +146,8 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	chunk_download = 0
 	loadTS = time.time()
 	print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
-	achunk_sz = download_chunk(selected_srv, videoName, audioInit)
-	vchunk_sz = download_chunk(selected_srv, videoName, vidInit)
+	achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
+	vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
 	startTS = time.time()
 	print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
 	est_bw = (achunk_sz + vchunk_sz) * 8 / (startTS - loadTS)
@@ -156,8 +165,8 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 		auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
 		# print "[AGENP] Download chunk: #" + str(chunkNext) + " at representation " + nextRep
-		achunk_sz = download_chunk(selected_srv, videoName, auChunk)
-		vchunk_sz = download_chunk(selected_srv, videoName, vidChunk)
+		achunk_sz = download_chunk(selected_srv_ip, videoName, auChunk)
+		vchunk_sz = download_chunk(selected_srv_ip, videoName, vidChunk)
 		curTS = time.time()
 		est_bw = (achunk_sz + vchunk_sz) * 8 / (curTS - loadTS)
 		# print "[AGENP] Received chunk # " + str(chunkNext) + " at " + datetime.datetime.fromtimestamp(int(curTS)).strftime("%H:%M:%S")
@@ -184,10 +193,11 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 		# Count Previous QoE average
 		if chunkNext%5 == 0:
 			mnQoE = averageQoE(client_tr)
-			qoe_vector = update_QoE(cache_agent, selected_srv, mnQoE)
+			qoe_vector = update_QoE(cache_agent_ip, selected_srv, mnQoE)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs)
 			# Selecting a server with maximum QoE
 			selected_srv = max(server_qoes.iteritems(), key=operator.itemgetter(1))[0]
+			selected_srv_ip = server_addrs[selected_srv]
 			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoe)
 
 		# Update iteration information

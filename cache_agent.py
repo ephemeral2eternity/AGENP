@@ -59,9 +59,30 @@ def num(s):
         except ValueError:
                 return float(s)
 
-def getQoE(qoePath):
-    q = qoePath.split("?", 2)[1]
-    return num(q)
+def getQoE(params):
+	qUpdates = {}
+	for param in params:
+		if '=' in param:
+			items = param.split('=', 2)
+			qUpdates[items[0]] = items[1]
+	return qUpdates
+
+def answerQoE(handler):
+	handler.send_response(200)
+	handler.send_headers('Content-type', 'text/html')
+	handler.send_headers('Params', json.dumps(QoE))
+	handler.end_headers()
+	handler.wfile.write("Updated QoE is: " + json.dumps(QoE))
+
+def updateQoE(handler, params):
+	if len(params) >= 3:
+		qupdates = getQoE(params)
+        	update_qoe = qupdates['q'] * delta + num(QoE[qupdates['s'])) * (1 - delta)
+        	QoE[qupdates['Agent']] = update_qoe
+        	# Update QoE.json file
+        	with open("./info/QoE.json", 'w') as qoeFile:
+			json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
+	answerQoE(handler)
 
 # -----------------------------------------------------------------------
 class MyHandler(BaseHTTPRequestHandler):
@@ -104,20 +125,13 @@ class MyHandler(BaseHTTPRequestHandler):
                 return
 
             elif self.path.startswith("/QoE?"):   #our dynamic content
-                client_qoe = getQoE(self.path)
-                update_qoe = client_qoe * delta + num(QoE[agentID]) * (1 - delta)
-                QoE[agentID] = update_qoe
-                self.send_response(200)
-                self.send_header('Content-type',    'text/html')
-                self.send_header('Params', json.dumps(QoE))
-                self.end_headers()
-                self.wfile.write("Updated QoE is : " + json.dumps(QoE))
-
-                # Update QoE.json file
-                with open("./info/QoE.json", 'w') as qoeFile:
-                    json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
-
-                return
+		contents = self.path.split('?', 2)[1]
+		params = contents.split('&')
+		if params[0] is 'query':
+                	answerQoE(self)
+		elif params[0] is 'update':
+			updateQoE(self, params)
+		return
 
             else : # default: just send the file     
                 # filepath = self.path[1:] + '/videos/' # remove leading '/'     
@@ -212,7 +226,7 @@ def bw_monitor():
 		curBytes = get_tx_bytes()
 		out_bw = (curBytes - previousBytes)/5
 		previousBytes = curBytes
-		print "Outbound bandwidth is " + str(out_bw) + " bytes/second!"
+		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " bytes/second!"
 
 def main():
     try:
@@ -230,7 +244,5 @@ def main():
 	sched.shutdown()
 
 if __name__ == '__main__':
- 
-
     main()
  
