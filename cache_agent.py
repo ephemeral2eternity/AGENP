@@ -127,9 +127,11 @@ class MyHandler(BaseHTTPRequestHandler):
             elif self.path.startswith("/QoE?"):   #our dynamic content
 		contents = self.path.split('?', 2)[1]
 		params = contents.split('&')
-		if params[0] is 'query':
+		if 'query' in contents:
+			print "[AGENP] Receive QoE query message!"
                 	answerQoE(self)
-		elif params[0] is 'update':
+		elif 'update' in contents:
+			print "[AGENP] Receive QoE update message!"
 			updateQoE(self, params)
 		return
 
