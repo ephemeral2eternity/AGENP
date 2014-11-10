@@ -78,7 +78,7 @@ def updateQoE(handler, params):
 	if len(params) >= 3:
 		qupdates = getQoE(params)
         	update_qoe = num(qupdates['q']) * delta + num(QoE[qupdates['s']]) * (1 - delta)
-        	QoE[qupdates['Agent']] = update_qoe
+        	QoE[qupdates['s']] = update_qoe
         	# Update QoE.json file
         	with open("./info/QoE.json", 'w') as qoeFile:
 			json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
