@@ -114,7 +114,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 	selected_srv_ip = server_addrs[selected_srv]
 
-	rsts = mpd_parser(selected_srv, videoName)
+	rsts = mpd_parser(selected_srv_ip, videoName)
 	vidLength = int(rsts['mediaDuration'])
 	minBuffer = num(rsts['minBufferTime'])
 	reps = rsts['representations']
