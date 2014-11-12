@@ -1,5 +1,5 @@
 {
 	"Account" : "840406026086-56d4ehaiu6ujfb8gkb9om7t71p1ekpeo@developer.gserviceaccount.com",
-	"Secret"  : "~/secrets/agens.pem",
+	"Secret"  : "~/secrets/agens.p12",
 	"Project" : "agents-web"
 }

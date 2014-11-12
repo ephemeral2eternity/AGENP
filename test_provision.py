@@ -6,11 +6,8 @@ from authenticate import *
 from provision import *
 
 # Download auth.json from google cloud storage
-<<<<<<< HEAD
 os.system('gsutil cp gs://agens-storage/auth.json ./')
-=======
 os.system('gsutil cp gs://agens-storage/auth.json ./info/')
->>>>>>> ddffa2013265fa5e2807a4ac4c01d7c047c3d251
 
 # Get the driver from an authentication json file which defines the service account, pem file path, datacenter, and project.
 driver = authenticate("./info/auth.json")

@@ -11,6 +11,7 @@ import requests
 from operator import itemgetter
 from mpd_parser import *
 from download_chunk import *
+from gs_upload import *
 
 def findRep(sortedVidBWS, est_bw_val, bufferSz, minBufferSz):
 	for i in range(len(sortedVidBWS)):
@@ -215,4 +216,8 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 		json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 
 	shutil.rmtree('./tmp')
-	os.system('gsutil cp ' + trFileName + ' gs://agens-data/')
+
+	# Upload the trace file to google cloud
+	bucketName = "agens-data"
+	gsAuthFile = "./info/gsAuth.json"
+	gs_upload(gsAuthFile, bucketName, trFileName)
