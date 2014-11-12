@@ -246,7 +246,8 @@ def demand_monitor():
 	for client in client_addrs:
 		print client
 	print "==================================================="
-	client_addr[:] = []
+	# Clear client agents to empty
+	client_addrs[:] = []
 
 def main():
     try:
