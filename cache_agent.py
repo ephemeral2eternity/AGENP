@@ -240,13 +240,12 @@ def bw_monitor():
 
 def demand_monitor():
 	global client_addrs
-	if not client_addrs:
-		print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
-			" clients connecting to this server in last 1 minutes."
-		print "==================================================="
-		for client in client_addrs:
-			print client
-		print "==================================================="
+	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
+		" clients connecting to this server in last 1 minutes."
+	print "==================================================="
+	for client in client_addrs:
+		print client
+	print "==================================================="
 	client_addr[:] = []
 
 def main():
