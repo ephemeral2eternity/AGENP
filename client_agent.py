@@ -219,5 +219,5 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 
 	# Upload the trace file to google cloud
 	bucketName = "agens-data"
-	gsAuthFile = "./info/gsAuth.json"
+	gsAuthFile = "./info/auth.json"
 	gs_upload(gsAuthFile, bucketName, trFileName)

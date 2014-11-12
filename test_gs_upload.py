@@ -2,7 +2,7 @@
 # chenw@cmu.edu
 from gs_upload import *
 
-authFile = "./info/gsAuth.json"
+authFile = "./info/auth.json"
 bucketName = "agens-data"
 fPath = "./data/chenw.txt"
 
