@@ -161,7 +161,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 
 	client_tr = {}
 
-	while ((chunkNext + 1) * chunkLen < vidLength) :
+	while (chunkNext * chunkLen < vidLength) :
 		nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
 		vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
 		auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
