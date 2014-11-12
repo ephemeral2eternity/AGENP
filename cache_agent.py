@@ -17,6 +17,7 @@ QoE = json.loads(open("./info/QoE.json").read())
 agentID = "agenp-01"
 delta = 0.5
 previousBytes = -1
+client_addrs = []
 
 def make_index( relpath ):     
     abspath = os.path.abspath(relpath) # ; print abspath
@@ -136,8 +137,14 @@ class MyHandler(BaseHTTPRequestHandler):
 			updateQoE(self, params)
 		return
 
-            else : # default: just send the file     
-                # filepath = self.path[1:] + '/videos/' # remove leading '/'     
+            else :
+		# Get client addresses
+		client_addr = self.client_address[0]
+		if client_addr not in client_addrs:
+			client_addrs.append(client_addr)
+ 
+		# default: just send the file     
+                # filepath = self.path[1:] + '/videos/' # remove leading '/'
                 filepath = '../videos' + self.path
                 fileSz = os.path.getsize(filepath)
                 f = open( os.path.join(CWD, filepath), 'rb' )
@@ -231,10 +238,22 @@ def bw_monitor():
 		previousBytes = curBytes
 		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " bytes/second!"
 
+def demand_monitor():
+	global client_addrs
+	if not client_addrs:
+		print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
+			" clients connecting to this server in last 1 minutes."
+		print "==================================================="
+		for client in client_addrs:
+			print client
+		print "==================================================="
+	client_addr[:] = []
+
 def main():
     try:
 	sched = BackgroundScheduler()
 	sched.add_job(bw_monitor, 'interval', seconds=5)
+	sched.add_job(demand_monitor, 'interval', minutes=1)
 	sched.start()
 
         server = HTTPServer(('', PORT), MyHandler)
