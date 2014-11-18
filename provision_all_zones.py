@@ -20,8 +20,12 @@ driver = gce_authenticate("./info/auth.json")
 nodeType = "f1-micro"
 nodeSize = 20
 image = "agenp"
-zone = "us-central1-a"
+zone_1 = "us-central1-a"
+zone_2 = "europe-west1-b"
+zone_3 = "asia-east1-a"
 
 # Provision node
-node = provision(driver, nodeType, nodeSize, image, zone)
+node1 = provision(driver, nodeType, nodeSize, image, zone1)
+node2 = provision(driver, nodeType, nodeSize, image, zone2)
+node3 = provision(driver, nodeType, nodeSize, image, zone3)
 

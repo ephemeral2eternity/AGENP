@@ -1,9 +1,11 @@
 #!/usr/bin/python
-# Copyright Jon Berg , turtlemeat.com
-# Modified by nikomu @ code.google.com     
- 
+# Cache Agent in Agent based management and control system
+# Chen Wang, chenw@cmu.edu
+import shutil 
+import argparse
 import string,cgi,time
 import json
+import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -14,10 +16,13 @@ CWD = os.path.abspath('.')
 PORT = 8615     
 UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server
 QoE = json.loads(open("./info/QoE.json").read())
-agentID = "agenp-01"
+agentID = "agens-01"
+prevAgent = ""
+nextAgent = ""
 delta = 0.5
 previousBytes = -1
 client_addrs = []
+cached_videos = []
 
 def make_index( relpath ):     
     abspath = os.path.abspath(relpath) # ; print abspath
@@ -69,6 +74,7 @@ def getQoE(params):
 	return qUpdates
 
 def answerQoE(handler):
+	global QoE
 	handler.send_response(200)
 	handler.send_header('Content-type', 'text/html')
 	handler.send_header('Params', json.dumps(QoE))
@@ -76,6 +82,7 @@ def answerQoE(handler):
 	handler.wfile.write("Updated QoE is: " + json.dumps(QoE))
 
 def updateQoE(handler, params):
+	global QoE
 	if len(params) >= 3:
 		qupdates = getQoE(params)
         	update_qoe = num(qupdates['q']) * delta + QoE[qupdates['s']] * (1 - delta)
@@ -85,6 +92,53 @@ def updateQoE(handler, params):
         	with open("./info/QoE.json", 'w') as qoeFile:
 			json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
 	answerQoE(handler)
+
+def answerOverlayUpdate(handler, cmdStr):
+	global prevAgent, nextAgent
+	params = cmdStr.split('&')
+	for param in params:
+		if '=' in param:
+			items = param.split('=', 2)
+			if items[0] == 'p':
+				prevAgent = items[1]
+			elif items[0] == 'n':
+				nextAgent = items[1]
+	answerOverlayQuery(handler)
+
+def answerOverlayQuery(handler):
+	global agentID, prevAgent, nextAgent
+	handler.send_response(200)
+	handler.send_header('Content-type', 'text/html')
+	handler.send_header('Params', {'Prev': prevAgent, 'Next': nextAgent})
+	handler.end_headers()
+	handler.wfile.write("The agent: " + agentID + "<br>Predecessor: " + prevAgent + "<br>Successor: " + nextAgent)
+
+def queryVideos(handler):
+	global cached_videos
+	handler.send_response(200)
+	handler.send_header('Content-type', 'text/html')
+	handler.send_header('Params', str(cached_videos))
+	handler.end_headers()
+	cached_video_page = "Locally cached videos: <br>"
+
+	for video in cached_videos:
+		cached_video_page = cached_video_page + video + "<br>"
+
+	handler.wfile.write(cached_video_page)
+
+def cacheVideos(handler, cmdStr):
+	params = cmdStr.split('&')
+	for video in params:
+		if video is not 'cache':
+			# Need to add cache_content.py
+			cache_content(video)
+	queryVideos(handler)
+
+def deleteVideos(handler, cmdStr):
+	params = cmdStr.split('&')
+	for video in params:
+		if video is not 'delete':
+			shutil.rmtree('../videos/'+ video)
 
 # -----------------------------------------------------------------------
 class MyHandler(BaseHTTPRequestHandler):
@@ -98,18 +152,51 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(page)
                 return
 
-            elif self.path.startswith('/videos'):   
-                page = make_index( self.path.replace('/videos', '../videos') )
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                self.wfile.write(page)
-                return     
+	    ## Processing requests related to locally cached videos 
+            elif self.path.startswith('/videos'):
+		if '?' in self.path:
+			cmdStr = self.path.split('?', 2)[1]
+			if 'query' in cmdStr:
+				queryVideos(self)
+			elif 'cache' in cmdStr:
+				cacheVideos(self, cmdStr)
+			elif 'delete' in cmdStr:
+				deleteVideos(self, cmdStr)
+			else:
+				print "[AGENP]Wrong videos command"
+				print "Please try videos?query, delete, cache!"
+		else:
+                	page = make_index( self.path.replace('/videos', '../videos') )
+                	self.send_response(200)
+                	self.send_header('Content-type', 'text/html')
+                	self.end_headers()
+                	self.wfile.write(page)
+                return
+
+	    ## Processing requests related to QoE
+            elif self.path.startswith("/QoE?"):   #our dynamic content
+		contents = self.path.split('?', 2)[1]
+		params = contents.split('&')
+		if 'query' in contents:
+			print "[AGENP] Receive QoE query message!"
+                	answerQoE(self)
+		elif 'update' in contents:
+			print "[AGENP] Receive QoE update message!"
+			updateQoE(self, params)
+		return
+
+	    ## Processing requests related to Ring Overlay
+	    elif self.path.startswith('/overlay?'):
+		cmdStr = self.path.split('?', 2)[1]
+		if 'query' in cmdStr:
+			answerOverlayQuery(self)
+		if 'update' in cmdStr:
+			answerOverlayUpdate(self, cmdStr)
+		return
 
             elif self.path.endswith(".html"):
                 ## print curdir + sep + self.path
                 f = open(curdir + sep + self.path)
- 
                 #note that this potentially makes every file on your computer readable by the internet
                 self.send_response(200)
                 self.send_header('Content-type',    'text/html')
@@ -125,17 +212,6 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.wfile.write("hey, today is the " + str(time.localtime()[7]))
                 self.wfile.write(" day in the year " + str(time.localtime()[0]))
                 return
-
-            elif self.path.startswith("/QoE?"):   #our dynamic content
-		contents = self.path.split('?', 2)[1]
-		params = contents.split('&')
-		if 'query' in contents:
-			print "[AGENP] Receive QoE query message!"
-                	answerQoE(self)
-		elif 'update' in contents:
-			print "[AGENP] Receive QoE update message!"
-			updateQoE(self, params)
-		return
 
             else :
 		# Get client addresses
@@ -164,70 +240,25 @@ class MyHandler(BaseHTTPRequestHandler):
              self.send_error(404,'File Not Found: %s' % self.path)
 
     def do_POST(self):
-        # global rootnode ## something remained in the orig. code     
-        try:
-            ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))     
-            if ctype == 'multipart/form-data':
-                # original version :     
-                '''
-                query=cgi.parse_multipart(self.rfile, pdict)
-                upfilecontent = query.get('upfile')
-                print "filecontent", upfilecontent[0] 
-
-                '''
-                # using cgi.FieldStorage instead, see 
-                 # http://stackoverflow.com/questions/1417918/time-out-error-while-creating-cgi-fieldstorage-object     
-                fs = cgi.FieldStorage( fp = self.rfile, 
-                                        headers = self.headers, # headers_, 
-                                        environ={ 'REQUEST_METHOD':'POST' } # all the rest will come from the 'headers' object,     
-                                        # but as the FieldStorage object was designed for CGI, absense of 'POST' value in environ     
-                                        # will prevent the object from using the 'fp' argument !     
-                                      )
-                ## print 'have fs'
-
-            else: raise Exception("Unexpected POST request")
-    
-            fs_up = fs['upfile']
-            filename = os.path.split(fs_up.filename)[1] # strip the path, if it presents     
-            fullname = os.path.join(CWD, filename)
- 
-
-            # check for copies :     
-            if os.path.exists( fullname ):     
-                fullname_test = fullname + '.copy'
-                i = 0
-                while os.path.exists( fullname_test ):
-                    fullname_test = "%s.copy(%d)" % (fullname, i)
-                    i += 1
-                fullname = fullname_test
-                 
-            if not os.path.exists(fullname):
-                with open(fullname, 'wb') as o:
-                    # self.copyfile(fs['upfile'].file, o)
-                    o.write( fs_up.file.read() )     
- 
-
             self.send_response(200)
- 
-
             self.end_headers()
-            
             self.wfile.write("<HTML><HEAD></HEAD><BODY>POST OK.<BR><BR>");
             self.wfile.write( "File uploaded under name: " + os.path.split(fullname)[1] );
             self.wfile.write(  '<BR><A HREF=%s>back</A>' % ( UPLOAD_PAGE, )  )
             self.wfile.write("</BODY></HTML>");
 
-        except Exception as e:
-            # pass
-            print e
-            self.send_error(404,'POST to "%s" failed: %s' % (self.path, str(e)) )
-
+# ================================================================================
+# Read outbound bytes in 5 seconds. 
+# ================================================================================
 def get_tx_bytes():
 	file_txbytes = open('/sys/class/net/eth0/statistics/tx_bytes')
 	lines = file_txbytes.readlines()
 	tx_bytes = int(lines[0])
 	return tx_bytes
 
+# ================================================================================
+# Monitor outbound traffic every 5 seconds. 
+# ================================================================================
 def bw_monitor():
 	global previousBytes
 	if previousBytes < 0:
@@ -238,6 +269,11 @@ def bw_monitor():
 		previousBytes = curBytes
 		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " bytes/second!"
 
+# ================================================================================
+# Monitor user demand on a cache agent. 
+# User demand is measured by the number of unique flows connecting to the same 
+# cache agent in 1 minutes.
+# ================================================================================
 def demand_monitor():
 	global client_addrs
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
@@ -249,7 +285,51 @@ def demand_monitor():
 	# Clear client agents to empty
 	client_addrs[:] = []
 
-def main():
+# ================================================================================
+# Update the global variable of cached_videos list.  
+# Show locally cached videos for current cache agent. 
+# ================================================================================
+def update_cached_videos():
+    global cached_videos
+    abspath = os.path.abspath("../videos/") # ; print abspath
+    flist = os.listdir( abspath ) # ; print flist
+     
+    for fname in flist :
+	if fname is not "Favicon.ico":     
+        	cached_videos.append(fname)
+
+#==========================================================================================
+def main(argv):
+    global agentID, PORT, prevAgent, nextAgent, delta
+
+    # Parse the input arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--agentID", help="The agent ID of current agent!")
+    parser.add_argument("--port", type=int, help="The port number the agent is running on!")
+    parser.add_argument("--previous", help="The predecessor agent!")
+    parser.add_argument("--next", help="The successor agent!")
+    parser.add_argument("--delta", type=float, help="The delta coefficient to forget previous QoE observations!")
+
+    args = parser.parse_args()
+    if args.agentID:
+	agentID = args.agentID
+    if args.port:
+	PORT = args.port
+    if args.previous:
+	prevAgent = args.previous
+    if args.next:
+	nextAgent = args.next
+    if args.delta:
+        delta = args.delta
+    print "Agent ID: ", agentID
+    print "Listening Port: ", str(PORT)
+    print "Predecessor: ", prevAgent
+    print "Successor:", nextAgent
+    print "Forgetting Coefficient: ", str(delta) 
+
+    # Update what have been cached locally
+    update_cached_videos()
+
     try:
 	sched = BackgroundScheduler()
 	sched.add_job(bw_monitor, 'interval', seconds=5)
@@ -266,5 +346,5 @@ def main():
 	sched.shutdown()
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
  

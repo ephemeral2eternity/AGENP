@@ -23,7 +23,7 @@ def provision(driver, nodeType, nodeSize, image, zone):
 		nodeID = find_maxID(existing_nodes) + 1
 
 	# Create a new node
-	nodeName = "agenp-" + str(nodeID).zfill(2)
+	nodeName = "agens-" + str(nodeID).zfill(2)
 
 	# Get the image
 	imageFile = driver.ex_get_image(image)
@@ -34,7 +34,4 @@ def provision(driver, nodeType, nodeSize, image, zone):
 	# Provision a disk
 	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk, use_existing_disk=True)
 
-	# Write JSON file and upload to gs://agens-storage/
-	# os.system('gcloud compute instances describe ' + nodeName + ' --format json' + ' --zone ' + zone + ' > ' + nodeName + '.json')
-	# os.system('gsutil cp ./' + nodeName + '.json gs://agens-storage/')
 	return node
