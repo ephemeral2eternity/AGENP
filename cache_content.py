@@ -3,6 +3,7 @@ import httplib2
 import os
 import time
 import json
+import subprocess
 
 from apiclient import discovery, http
 from oauth2client import client, file, tools
@@ -13,4 +14,4 @@ def cache_content(contentName):
 	authFile = "./info/auth.json"
 	bucketName = "agens-videos"
 	gcs_authenticate(authFile)
-	os.system('gsutil cp -r gs://agenp-videos/' + contentName + ' ../videos/')
+	subprocess.Popen(["gsutil", "cp", "-r", "gs://agens-videos/" + contentName, "../videos/"])

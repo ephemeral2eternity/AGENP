@@ -1,15 +1,17 @@
 #!/usr/bin/python
 # Cache Agent in Agent based management and control system
 # Chen Wang, chenw@cmu.edu
-import shutil 
+import subprocess 
 import argparse
 import string,cgi,time
 import json
+import ntpath
 import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os # os. path
+from cache_content import *
  
 CWD = os.path.abspath('.')
 ## print CWD
@@ -111,40 +113,86 @@ def answerOverlayQuery(handler):
 	handler.send_header('Content-type', 'text/html')
 	handler.send_header('Params', {'Prev': prevAgent, 'Next': nextAgent})
 	handler.end_headers()
-	handler.wfile.write("The agent: " + agentID + "<br>Predecessor: " + prevAgent + "<br>Successor: " + nextAgent)
+	handler.wfile.write("<h2>The Overlay Info</h2><ul><li>The agent: " + agentID + "</li><li>Predecessor: " + prevAgent + "</li><li>Successor: " + nextAgent+ "</li></ul>")
 
 def queryVideos(handler):
 	global cached_videos
+    	update_cached_videos()
 	handler.send_response(200)
 	handler.send_header('Content-type', 'text/html')
 	handler.send_header('Params', str(cached_videos))
 	handler.end_headers()
-	cached_video_page = "Locally cached videos: <br>"
+	cached_video_page = "<h2>Locally cached videos: </h2><ul>"
 
 	for video in cached_videos:
-		cached_video_page = cached_video_page + video + "<br>"
+		cached_video_page = cached_video_page + "<li>" + video + "</li>"
+
+	cached_video_page = cached_video_page + "</ul>"
 
 	handler.wfile.write(cached_video_page)
 
 def cacheVideos(handler, cmdStr):
+	global cached_videos
 	params = cmdStr.split('&')
+	to_cache = []
 	for video in params:
-		if video is not 'cache':
-			# Need to add cache_content.py
-			cache_content(video)
-	queryVideos(handler)
+		if 'cache' not in video:
+			if video not in cached_videos:
+				to_cache.append(video)
+				cache_content(video)
+				cached_videos.append(video)
+			else:
+				print video + " is cached locally!"
+
+	if to_cache:	
+		video_cache_page = "<h2>Starts caching videos: </h2><ul>"
+		for v in to_cache:
+			video_cache_page = video_cache_page + "<li>" + video + "</li>"
+		video_cache_page = video_cache_page + "</ul>"
+	else:
+		video_cache_page = "<h2>Videos already cached!</h2>"
+	handler.send_response(200)
+	handler.send_header('Content-type', 'text/html')
+	handler.end_headers()
+	handler.wfile.write(video_cache_page)
 
 def deleteVideos(handler, cmdStr):
+	global cached_videos
 	params = cmdStr.split('&')
 	for video in params:
-		if video is not 'delete':
-			shutil.rmtree('../videos/'+ video)
+		if "delete" not in video:
+			print "delete locally cached video ", video
+			if video in cached_videos:
+				try:
+					subprocess.Popen(["rm", "-r", "-f", "../videos/"+ video])
+				except:
+					failPage = "<h2>Fail to delete video " + video + "<h2>"
+					handler.send_response(200)
+					handler.send_header('Content-type', 'text/html')
+					handler.end_headers()
+					handler.wfile.write(failPage)
+		
+				successPage = "<h2>Successfully delete video: " + video + "<h2>"
+				handler.send_response(200)
+				handler.send_header('Content-type', 'text/html')
+				handler.end_headers()
+				handler.wfile.write(successPage)
+				cached_videos.remove(video)
+			else:
+				errPage = "<h2>Wrong Video to delete: " + video + "<h2>"
+				handler.send_response(200)
+				handler.send_header('Content-type', 'text/html')
+				handler.end_headers()
+				handler.wfile.write(errPage)
 
 # -----------------------------------------------------------------------
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        try:   
-            if self.path == '/' :
+        try:
+	    if "ico" in self.command:
+		return
+
+            elif self.path == '/' :
                 page = welcome_page()
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -157,8 +205,10 @@ class MyHandler(BaseHTTPRequestHandler):
 		if '?' in self.path:
 			cmdStr = self.path.split('?', 2)[1]
 			if 'query' in cmdStr:
+				print "Query local cached videos"
 				queryVideos(self)
 			elif 'cache' in cmdStr:
+				print "cache a new video"
 				cacheVideos(self, cmdStr)
 			elif 'delete' in cmdStr:
 				deleteVideos(self, cmdStr)
@@ -286,17 +336,16 @@ def demand_monitor():
 	client_addrs[:] = []
 
 # ================================================================================
-# Update the global variable of cached_videos list.  
 # Show locally cached videos for current cache agent. 
 # ================================================================================
 def update_cached_videos():
     global cached_videos
+    cached_videos = []
     abspath = os.path.abspath("../videos/") # ; print abspath
-    flist = os.listdir( abspath ) # ; print flist
-     
-    for fname in flist :
-	if fname is not "Favicon.ico":     
-        	cached_videos.append(fname)
+    dirs = filter(os.path.isdir, [os.path.join(abspath, f) for f in os.listdir(abspath)]) # ; print flist
+    print "Locally cached videos are: ", dirs
+    for video in dirs:
+	cached_videos.append(ntpath.basename(video))
 
 #==========================================================================================
 def main(argv):
