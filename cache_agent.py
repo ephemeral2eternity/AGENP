@@ -7,24 +7,39 @@ import string,cgi,time
 import json
 import ntpath
 import sys
+import sqlite3 as lite
+from libcloud.compute.types import Provider
+from libcloud.compute.providers import get_driver
 from apscheduler.schedulers.background import BackgroundScheduler
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os # os. path
+
+## Import self-written libraries
 from cache_content import *
+from gce_authenticate import *
+from provision import *
  
+## Current Path
 CWD = os.path.abspath('.')
-## print CWD
+
+## Global Varibles
 PORT = 8615     
 UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server
 QoE = json.loads(open("./info/QoE.json").read())
-agentID = "agens-01"
+agentID = ""
 prevAgent = ""
 nextAgent = ""
 delta = 0.5
 previousBytes = -1
 client_addrs = []
 cached_videos = []
+
+## Global Variables for Database connection
+con = None
+cur = None
+
+## Global variable to access GCE
 
 def make_index( relpath ):     
     abspath = os.path.abspath(relpath) # ; print abspath
@@ -347,10 +362,12 @@ def update_cached_videos():
     for video in dirs:
 	cached_videos.append(ntpath.basename(video))
 
-#==========================================================================================
-def main(argv):
+# ================================================================================
+# Initialize the global variables with input arguments
+# @argv: system inpute arguments
+# ================================================================================
+def initialize(argv):
     global agentID, PORT, prevAgent, nextAgent, delta
-
     # Parse the input arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--agentID", help="The agent ID of current agent!")
@@ -379,6 +396,55 @@ def main(argv):
     # Update what have been cached locally
     update_cached_videos()
 
+# ================================================================================
+# Get external IP address of current agent
+# ================================================================================
+def getIPAddr():
+	data = json.loads(urllib.urlopen("http://ip.jsontest.com/").read())
+	return data["ip"]
+
+# ================================================================================
+# Initialize the sqllite database
+# ================================================================================
+def initializeDB():
+    global driver, con, cur, agentID, PORT, prevAgent, nextAgent, cached_videos
+    driver = gce_authenticate("./info/auth.json")
+    agents = driver.list_nodes()
+    curIP = getIPAddr()
+    curAgents = []
+    curQoE = []
+    curAgents.append((agentID, curIP, PORT, prevAgent, nextAgent))
+    curQoE.append((agentID, curIP, 5.0))
+    for agent in agents:
+	if agent.id is not agentID:
+		curAgents.append((agent.id, agent.public_ips[0], PORT, "", ""))
+		curQoE.append((agent.id, agent.public_ips[0], 4.0))
+
+    curCandidates = []
+    for vd in cached_videos:
+	curCandiates.append((vd, agentID, "", ""))
+
+    try:
+	con = lite.connect('agens.db')
+	cur = con.cursor()
+	## The format of all tables in agens.db
+	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT, prev TEXT, next TEXT)")
+	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
+	cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
+	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?, ?, ?)", curAgents)
+	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?, ?, ?)", curQoE)
+	cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
+	con.commit()
+    except lite.Error, e:
+	if con:
+		con.rollback()
+	print "SQLITE DB Error %s" % e.args[0]
+
+#==========================================================================================
+# Main Function of Cache Agent
+#==========================================================================================
+def main(argv):
+    initialize(argv)
     try:
 	sched = BackgroundScheduler()
 	sched.add_job(bw_monitor, 'interval', seconds=5)
