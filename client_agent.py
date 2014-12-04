@@ -193,7 +193,7 @@ def dash(cache_agent, server_addrs,  videoName, clientID):
                 chunk_download += 1
                 chunkNext += 1
 
-        trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+        trFileName = "./data/" + clientID + "-" + videoName + ".json"
         with open(trFileName, 'w') as outfile:
                 json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 
@@ -320,7 +320,7 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
                 chunk_download += 1
                 chunkNext += 1
 
-        trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+        trFileName = "./data/" + clientID + "-" + videoName + ".json"
         with open(trFileName, 'w') as outfile:
                 json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 

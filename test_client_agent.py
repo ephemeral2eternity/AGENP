@@ -24,7 +24,7 @@ def test_client_agent(clientID, candidates, port, videoName):
 		server_rtts[srv] = mnRtt
 
 	# Upload the ping RTTs to google cloud storage
-	pingFile = "./data/" + clientID + ".json"
+	pingFile = "./data/" + clientID + "-PING.json"
 	with open(pingFile, 'w') as outfile:
 		json.dump(server_rtts, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 	bucketName = "agens-data"
