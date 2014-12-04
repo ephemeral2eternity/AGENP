@@ -426,9 +426,9 @@ def initializeDB():
 		curQoE.append((agent.id, agent.public_ips[0], 4.0))
 		QoE[agent.id] = 4.0
 
-    curCandidates = []
-    for vd in cached_videos:
-	curCandiates.append((vd, agentID, "", ""))
+    #curCandidates = []
+    #for vd in cached_videos:
+    #   curCandiates.append((vd, agentID, "", ""))
 
     try:
 	con = lite.connect('agens.db')
@@ -436,10 +436,10 @@ def initializeDB():
 	## The format of all tables in agens.db
 	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT)")
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
-	cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
+	# cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?, ?, ?)", curAgents)
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
-	cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
+	# cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
 	con.commit()
     except lite.Error, e:
 	if con:
