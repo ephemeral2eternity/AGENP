@@ -18,14 +18,22 @@ driver = gce_authenticate("./info/auth.json")
 
 # Instances to create
 nodeType = "f1-micro"
-nodeSize = 20
-image = "agenp"
-zone_1 = "us-central1-a"
-zone_2 = "europe-west1-b"
-zone_3 = "asia-east1-a"
+nodeSize = 10
+image = "agens"
+zones = ["asia-east1-a",
+	 "asia-east1-b",
+	 "asia-east1-c",
+	 "europe-west1-b",
+	 "europe-west1-b",
+	 "europe-west1-c",
+	 "us-central1-a",
+	 "us-central1-b",
+	 "us-central1-f"]
 
-# Provision node
-node1 = provision(driver, nodeType, nodeSize, image, zone1)
-node2 = provision(driver, nodeType, nodeSize, image, zone2)
-node3 = provision(driver, nodeType, nodeSize, image, zone3)
-
+# Provision node in all available zones
+i = 1
+for zone in zones:
+	nodeID = "agens-" + str(i).zfill(2)
+	print "========= Provision f1-micro in Zone " + zone + " ================="
+	node = provision(driver, nodeType, nodeSize, image, zone, nodeID)
+	i = i + 1

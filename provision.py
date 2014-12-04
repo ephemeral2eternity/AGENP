@@ -12,18 +12,18 @@ def find_maxID(existing_nodes):
 	max_id = max(ids)
 	return max_id
 
-def provision(driver, nodeType, nodeSize, image, zone):
+def provision(driver, nodeType, nodeSize, image, zone, nodeName):
 	# List all instances
 	existing_nodes = driver.list_nodes()
 
-	# Get the id of the new node.
-	if not existing_nodes:
-		nodeID = 1
-	else:
-		nodeID = find_maxID(existing_nodes) + 1
+	## Get the id of the new node.
+	#if not existing_nodes:
+	#	nodeID = 1
+	#else:
+	#	nodeID = find_maxID(existing_nodes) + 1
 
 	# Create a new node
-	nodeName = "agens-" + str(nodeID).zfill(2)
+	# nodeName = "agens-" + str(nodeID).zfill(2)
 
 	# Get the image
 	imageFile = driver.ex_get_image(image)
