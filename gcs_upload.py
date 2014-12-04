@@ -6,4 +6,4 @@ def gcs_upload(bucketName, uploadFile):
 	# Execute gsutil command to upload the file "uploadFile"
 	authFile = "./info/auth.json"
 	gcs_authenticate(authFile)
-	subprocess.Popen(["gsutil", "cp", uploadFile, "gs://" + bucketName])
+	subprocess.call(["gsutil", "cp", uploadFile, "gs://" + bucketName])
