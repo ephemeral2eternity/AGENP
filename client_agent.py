@@ -157,7 +157,7 @@ def dash(cache_agent, server_addrs,  videoName, clientID):
                 nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
                 vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
                 loadTS = time.time();
-                vchunk_sz = download_chunk(selected_srv_ip, videoName, vidChunk)
+                vchunk_sz = download_chunk(srv_ip, videoName, vidChunk)
                 curTS = time.time()
                 est_bw = vchunk_sz * 8 / (curTS - loadTS)
                 time_elapsed = curTS - preTS

@@ -9,7 +9,7 @@ server_addrs['agens-02'] = '130.211.108.80:8615'
 videoName = 'BBB'
 
 
-clientID = 'Chen_DASH'
+clientID = 'INESC-DASH'
 dash(cache_agent, server_addrs, videoName, clientID)
 
 #clientID = 'Chen_QAS_DASH'
