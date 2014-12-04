@@ -30,7 +30,8 @@ def findRep(sortedVidBWS, est_bw_val, bufferSz, minBufferSz):
 	return repID
 
 def increaseRep(sortedVidBWS, repID):
-	i = sortedVidBWS.keys().index(repID)
+	dict_sorted_vid_bws = dict(sortedVidBWS)
+	i = dict_sorted_vid_bws.keys().index(repID)
 	j = min(i+1, len(sortedVidBWS) - 1)
 	newRepID = sortedVidBWS[j][0]
 	return newRepID
