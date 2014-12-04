@@ -9,12 +9,12 @@ server_addrs['agens-02'] = '130.211.108.80:8615'
 videoName = 'BBB'
 
 
-clientID = 'INESC-DASH'
-dash(cache_agent, server_addrs, videoName, clientID)
+#clientID = 'INESC-DASH'
+#dash(cache_agent, server_addrs, videoName, clientID)
 
-#clientID = 'Chen_QAS_DASH'
-#alpha = 0.5
-#qas_dash(cache_agent, server_addrs, videoName, clientID, alpha)
+clientID = 'INESC-QAS_DASH'
+alpha = 0.5
+qas_dash(cache_agent, server_addrs, videoName, clientID, alpha)
 
 #clientID = 'Chen_CQAS_DASH'
 #cqas_dash(cache_agent, server_addrs, videoName, clientID)

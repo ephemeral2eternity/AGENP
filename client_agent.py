@@ -29,6 +29,12 @@ def findRep(sortedVidBWS, est_bw_val, bufferSz, minBufferSz):
 	repID = sortedVidBWS[j][0]
 	return repID
 
+def increaseRep(sortedVidBWS, repID):
+	i = sortedVidBWS.keys().index(repID)
+	j = min(i+1, len(sortedVidBWS) - 1)
+	newRepID = sortedVidBWS[j][0]
+	return newRepID
+
 def computeQoE(freezing_time, cur_bw, max_bw):
 	delta = 0.5
 	a = [1.3554, 40]
@@ -267,7 +273,7 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
 
 		# Greedily increase the bitrate because server is switched to a better one
 		if (pre_selected_srv != selected_srv):
-			nextRep = nextRep + 1
+			nextRep = increaseRep(sortedVids, nextRep)
 
                 vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
                 loadTS = time.time();
