@@ -29,8 +29,7 @@ UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of
 # QoE = json.loads(open("./info/QoE.json").read())
 QoE = {}
 agentID = ""
-prevAgent = ""
-nextAgent = ""
+peerAgents = []
 delta = 0.5
 previousBytes = -1
 client_addrs = []
@@ -372,13 +371,12 @@ def update_cached_videos():
 # @argv: system inpute arguments
 # ================================================================================
 def initialize(argv):
-    global agentID, PORT, prevAgent, nextAgent, delta
+    global agentID, PORT, peerAgents, delta
     # Parse the input arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--agentID", help="The agent ID of current agent!")
     parser.add_argument("--port", type=int, help="The port number the agent is running on!")
-    parser.add_argument("--previous", help="The predecessor agent!")
-    parser.add_argument("--next", help="The successor agent!")
+    parser.add_argument("--peers", nargs='+', help="The peer agent!")
     parser.add_argument("--delta", type=float, help="The delta coefficient to forget previous QoE observations!")
 
     args = parser.parse_args()
@@ -386,16 +384,13 @@ def initialize(argv):
 	agentID = args.agentID
     if args.port:
 	PORT = args.port
-    if args.previous:
-	prevAgent = args.previous
-    if args.next:
-	nextAgent = args.next
+    if args.peers:
+	peerAgents = args.peers
     if args.delta:
         delta = args.delta
     print "Agent ID: ", agentID
     print "Listening Port: ", str(PORT)
-    print "Predecessor: ", prevAgent
-    print "Successor:", nextAgent
+    print "Peer Agents: ", peerAgents
     print "Forgetting Coefficient: ", str(delta) 
 
     # Update what have been cached locally
@@ -415,18 +410,18 @@ def getIPAddr():
 # Initialize the sqllite database
 # ================================================================================
 def initializeDB():
-    global driver, con, cur, agentID, PORT, prevAgent, nextAgent, cached_videos, QoE
+    global driver, con, cur, agentID, PORT, cached_videos, QoE
     driver = gce_authenticate("./info/auth.json")
     agents = driver.list_nodes()
     curIP = getIPAddr()
     curAgents = []
     curQoE = []
-    curAgents.append((agentID, curIP, PORT, prevAgent, nextAgent))
+    curAgents.append((agentID, curIP, PORT))
     curQoE.append((agentID, curIP, 5.0))
     QoE[agentID] = 5.0
     for agent in agents:
 	if agent.id is not agentID:
-		curAgents.append((agent.id, agent.public_ips[0], PORT, "", ""))
+		curAgents.append((agent.id, agent.public_ips[0], PORT))
 		curQoE.append((agent.id, agent.public_ips[0], 4.0))
 		QoE[agent.id] = 4.0
 
@@ -438,7 +433,7 @@ def initializeDB():
 	con = lite.connect('agens.db')
 	cur = con.cursor()
 	## The format of all tables in agens.db
-	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT, prev TEXT, next TEXT)")
+	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT)")
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
 	cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?, ?, ?)", curAgents)

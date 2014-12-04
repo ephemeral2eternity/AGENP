@@ -5,8 +5,6 @@ import time
 import json
 import subprocess
 
-from apiclient import discovery, http
-from oauth2client import client, file, tools
 from gcs_authenticate import *
 
 def cache_content(contentName):
