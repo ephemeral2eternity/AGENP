@@ -9,6 +9,8 @@ import ntpath
 import sys
 import urllib2
 import sqlite3 as lite
+import shutil
+from gcs_upload import *
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -35,6 +37,7 @@ delta = 0.5
 previousBytes = -1
 client_addrs = []
 cached_videos = []
+bwTrace = {}
 
 ## Global Variables for Database connection
 con = None
@@ -330,7 +333,7 @@ def get_tx_bytes():
 # Monitor outbound traffic every 5 seconds. 
 # ================================================================================
 def bw_monitor():
-	global previousBytes
+	global previousBytes, bwTrace, agentID
 	if previousBytes < 0:
 		previousBytes = get_tx_bytes()
 	else:
@@ -338,6 +341,24 @@ def bw_monitor():
 		out_bw = (curBytes - previousBytes)/5
 		previousBytes = curBytes
 		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " bytes/second!"
+
+		## Record the bw in bwTraces and dump it per hour 60 * 60 / 5 = 720
+		curTS = time.time()
+		bwTrace[curTS] = out_bw
+		if len(bwTrace) >= 720:
+			bwTraceFile = "./data/" + agentID + "-bw-" + str(curTS) + ".json"
+			with open(bwTraceFile, 'w') as outfile:
+				json.dump(bwTrace, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
+
+		# Upload the bwTrace file to google cloud
+		bucketName = "agens-data"
+		gcs_upload(bucketName, bwTraceFile)
+
+		# Client bwTrace buffer
+		bwTrace = {}
+
+		# Delete local bwTrace file
+		shutil.rmtree(bwTraceFile)
 
 # ================================================================================
 # Monitor user demand on a cache agent. 
