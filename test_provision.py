@@ -21,7 +21,8 @@ nodeType = "f1-micro"
 nodeSize = 30
 image = "agens-web"
 zone = "us-central1-a"
+nodeName = "agens-0x"
 
 # Provision node
-node = provision(driver, nodeType, nodeSize, image, zone)
+node = provision(driver, nodeType, nodeSize, image, zone, nodeName)
 
