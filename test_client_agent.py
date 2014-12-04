@@ -1,20 +1,50 @@
 # Test client agent file, client_agent.py
-
 from client_agent import *
+from ping import *
+from get_available_srvs import *
+import operator
 
-cache_agent = 'agens'
-server_addrs = {}
-server_addrs['agens'] = '104.155.15.0:8615'
-server_addrs['agens-02'] = '130.211.108.80:8615'
-videoName = 'BBB'
+# Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
+def test_client_agent(clientID, candidates, port, videoName):
+	server_ips = get_available_srvs()
 
+	# Get server addresses for candidate servers
+	server_addrs = {}
+	for srv in candidates:
+		server_addrs[srv] = server_ips[srv] + ":" + str(port)
 
-#clientID = 'INESC-DASH'
-#dash(cache_agent, server_addrs, videoName, clientID)
+	# ping all servers and get the mean RTT
+	print "=========== Pinging Candidate Servers ============="
+	server_rtts = {}
+	for srv in candidates:
+		print "=========== Pinging " + srv + "  ============="
+		rtt = getRTT(server_ips[srv], 5)
+		mnRtt = sum(rtt) / float(len(rtt))
+		server_rtts[srv] = mnRtt
 
-clientID = 'INESC-QAS_DASH'
-alpha = 0.5
-qas_dash(cache_agent, server_addrs, videoName, clientID, alpha)
+	# Attach the closest server as cache agent
+	sorted_rtts = sorted(server_rtts.items(), key=operator.itemgetter(1))
+	cache_agent = sorted_rtts[0][0]
+	print "########## The cache agent is : " + cache_agent + ". ##############"
 
-#clientID = 'Chen_CQAS_DASH'
-#cqas_dash(cache_agent, server_addrs, videoName, clientID)
+	# Perform simple DASH streaming
+	dashID = clientID + '-DASH'
+	print "=========== DASH Streaming for " + dashID + "  ============="
+	dash(cache_agent, server_addrs, videoName, dashID)
+
+	# Perform QAS DASH streaming
+	qasdashID = clientID + '-QAS_DASH'
+	print "=========== QAS-DASH Streaming for " + qasdashID + "  ============="
+	alpha = 0.5
+	qas_dash(cache_agent, server_addrs, videoName, qasdashID, alpha)
+
+	# Perform Collaborative QAS DASH streaming
+	cqasdashID = clientID + '-CQAS_DASH'
+	print "=========== Collaborative QAS-DASH Streaming for " + cqasdashID + "  ============="
+	cqas_dash(cache_agent, server_addrs, videoName, cqasdashID)
+
+candidates = ['agens', 'agens-01']
+port = 8615
+video = 'st'
+clientID = 'Porto'
+test_client_agent(clientID, candidates, port, video)

@@ -255,7 +255,7 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
         chunk_download = 0
         loadTS = time.time()
         print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
-        print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+        # print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
         # achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
         vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
         startTS = time.time()
@@ -436,7 +436,8 @@ def cqas_dash(cache_agent, server_addrs, videoName, clientID):
 		chunk_download += 1
 		chunkNext += 1
 
-	trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+	# trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+	trFileName = "./data/" + clientID + "-" + videoName + ".json"
 	with open(trFileName, 'w') as outfile:
 		json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 

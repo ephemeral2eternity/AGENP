@@ -1,0 +1,79 @@
+{
+    "0": {
+        "Buffer": 4.676587820053101, 
+        "Freezing": 0, 
+        "QoE": 2.969745844265475, 
+        "Representation": "video.1", 
+        "Server": "agens"
+    }, 
+    "1": {
+        "Buffer": 8.903191804885864, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "2": {
+        "Buffer": 13.186036825180054, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "3": {
+        "Buffer": 16.81686496734619, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "4": {
+        "Buffer": 19.964027881622314, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "5": {
+        "Buffer": 23.76182794570923, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "6": {
+        "Buffer": 27.795284032821655, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "7": {
+        "Buffer": 27.12911081314087, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "8": {
+        "Buffer": 26.606257915496826, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "9": {
+        "Buffer": 26.373332023620605, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "10": {
+        "Buffer": 26.19179391860962, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }
+}

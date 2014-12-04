@@ -1,0 +1,79 @@
+{
+    "0": {
+        "Buffer": 4.677285194396973, 
+        "Freezing": 0, 
+        "QoE": 2.969745844265475, 
+        "Representation": "video.1", 
+        "Server": "agens"
+    }, 
+    "1": {
+        "Buffer": 9.00888705253601, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "2": {
+        "Buffer": 13.36258602142334, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "3": {
+        "Buffer": 17.516475200653076, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "4": {
+        "Buffer": 21.353853225708008, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "5": {
+        "Buffer": 25.218501091003418, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "6": {
+        "Buffer": 24.402433156967163, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "7": {
+        "Buffer": 28.63723611831665, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "8": {
+        "Buffer": 28.073336124420166, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "9": {
+        "Buffer": 27.855828046798706, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }, 
+    "10": {
+        "Buffer": 27.681320190429688, 
+        "Freezing": 0, 
+        "QoE": 4.9999536060530145, 
+        "Representation": "video.6", 
+        "Server": "agens"
+    }
+}
