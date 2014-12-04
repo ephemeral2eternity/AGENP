@@ -419,12 +419,12 @@ def initializeDB():
     curQoE = []
     curAgents.append((agentID, curIP, PORT))
     curQoE.append((agentID, curIP, 5.0))
-    QoE[agentID] = 5.0
     for agent in agents:
 	if agent.name is not agentID:
 		curAgents.append((agent.name, agent.public_ips[0], PORT))
 		curQoE.append((agent.name, agent.public_ips[0], 4.0))
 		QoE[agent.name] = 4.0
+    QoE[agentID] = 5.0
 
     #curCandidates = []
     #for vd in cached_videos:
