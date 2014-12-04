@@ -42,9 +42,3 @@ def test_client_agent(clientID, candidates, port, videoName):
 	cqasdashID = clientID + '-CQAS_DASH'
 	print "=========== Collaborative QAS-DASH Streaming for " + cqasdashID + "  ============="
 	cqas_dash(cache_agent, server_addrs, videoName, cqasdashID)
-
-candidates = ['agens', 'agens-01']
-port = 8615
-video = 'st'
-clientID = 'Porto'
-test_client_agent(clientID, candidates, port, video)
