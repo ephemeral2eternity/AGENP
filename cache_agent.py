@@ -344,9 +344,16 @@ def bw_monitor():
 
 		## Record the bw in bwTraces and dump it per hour 60 * 60 / 5 = 720
 		curTS = time.time()
+
+		# Save TS to the database
+		cur = con.cursor()
+		cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw))
+		con.commit()
+
+		# Save TS to google cloud
 		bwTrace[curTS] = out_bw
 		if len(bwTrace) >= 720:
-			bwTraceFile = "./data/" + agentID + "-bw-" + str(curTS) + ".json"
+			bwTraceFile = "./data/" + agentID + "-bw-" + str(int(curTS)) + ".json"
 			with open(bwTraceFile, 'w') as outfile:
 				json.dump(bwTrace, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
 
@@ -369,12 +376,22 @@ def demand_monitor():
 	global client_addrs
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
 		" clients connecting to this server in last 1 minutes."
+	
+	## Record the user demand per 1 minute
+	curTS = time.time()
+
+	# Save TS to the database
+	cur = con.cursor()
+	cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres)))
+	con.commit()
+
 	print "==================================================="
 	for client in client_addrs:
 		print client
 	print "==================================================="
 	# Clear client agents to empty
 	client_addrs[:] = []
+	
 
 # ================================================================================
 # Show locally cached videos for current cache agent. 
@@ -457,6 +474,8 @@ def initializeDB():
 	## The format of all tables in agens.db
 	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT)")
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
+	cur.execute("CREATE TABLE BW(TS INT, BW INT)")
+	cur.execute("CREATE TABLE DEMAND(TS INT, NUMBER INT)")
 	# cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?)", curAgents)
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
