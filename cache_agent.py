@@ -437,7 +437,7 @@ def initializeDB():
 	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT)")
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
 	# cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
-	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?, ?, ?)", curAgents)
+	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?)", curAgents)
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
 	# cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
 	con.commit()
