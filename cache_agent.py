@@ -113,9 +113,19 @@ def updateQoE(handler, params):
         	# with open("./info/QoE.json", 'w') as qoeFile:
 		# 	json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
 		# Update QoE to the database
-		cur = con.cursor()
-		cur.execute("UPDATE QoE SET QoE=? WHERE Name=?", (update_qoe, qupdates['s']))
-		con.commit()
+    		try:
+			connection = lite.connect('agens.db')
+			cur = connection.cursor()
+			cur.execute("UPDATE QoE SET QoE=? WHERE Name=?", (update_qoe, qupdates['s']))
+			connection.commit()
+			connection.close()
+    		except lite.Error, e:
+			if connection:
+				connection.rollback()
+			print "SQLITE DB Error %s" % e.args[0]
+		
+		
+
 	answerQoE(handler)
 
 def answerOverlayUpdate(handler, cmdStr):
@@ -333,7 +343,7 @@ def get_tx_bytes():
 # Monitor outbound traffic every 5 seconds. 
 # ================================================================================
 def bw_monitor():
-	global previousBytes, bwTrace, agentID, con, cur
+	global previousBytes, bwTrace, agentID
 	if previousBytes < 0:
 		previousBytes = get_tx_bytes()
 	else:
@@ -346,9 +356,16 @@ def bw_monitor():
 		curTS = time.time()
 
 		# Save TS to the database
-		cur = con.cursor()
-		cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw)
-		con.commit()
+    		try:
+			connection = lite.connect('agens.db')
+			cur = connection.cursor()
+			cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw)
+			connection.commit()
+			connection.close()
+    		except lite.Error, e:
+			if connection:
+				connection.rollback()
+			print "SQLITE DB Error %s" % e.args[0]		
 
 		# Save TS to google cloud
 		bwTrace[curTS] = out_bw
@@ -373,7 +390,7 @@ def bw_monitor():
 # cache agent in 1 minutes.
 # ================================================================================
 def demand_monitor():
-	global client_addrs, con, cur
+	global client_addrs
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
 		" clients connecting to this server in last 1 minutes."
 	
@@ -381,9 +398,17 @@ def demand_monitor():
 	curTS = time.time()
 
 	# Save TS to the database
-	cur = con.cursor()
-	cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres))
-	con.commit()
+    	try:
+		connection = lite.connect('agens.db')
+		cur = connection.cursor()
+		cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres))
+		connection.commit()
+		connection.close()
+    	except lite.Error, e:
+		if connection:
+			connection.rollback()
+		print "SQLITE DB Error %s" % e.args[0]
+		
 
 	print "==================================================="
 	for client in client_addrs:
@@ -481,6 +506,7 @@ def initializeDB():
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
 	# cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
 	con.commit()
+	con.close()
     except lite.Error, e:
 	if con:
 		con.rollback()
@@ -505,7 +531,7 @@ def main(argv):
         print '^C received, shutting down server'
         server.socket.close()
 	sched.shutdown()
-	con.close()
+	# con.close()
 
 if __name__ == '__main__':
     main(sys.argv)
