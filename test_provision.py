@@ -18,7 +18,7 @@ driver = gce_authenticate("./info/auth.json")
 
 # Instances to create
 nodeType = "f1-micro"
-nodeSize = 20
+nodeSize = 10
 image = "agenp"
 zone = "us-central1-a"
 

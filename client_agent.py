@@ -98,14 +98,245 @@ def get_server_QoE(qoe_vector, server_addrs):
 		srv_qoe[srv_name] = qoe_vector[srv_name]
 	return srv_qoe
 	
+
 # ================================================================================
-# Client agent to play the video
+# Client agent to run DASH
+# @input : cache_agent --- Cache agent that is closest to the client
+#	   videoName --- The name of the video the user is requesting
+#	   clientID --- The ID of client.
+# ================================================================================
+def dash(cache_agent, server_addrs,  videoName, clientID):
+	# Initialize server addresses
+	srv_ip = server_addrs[cache_agent]
+
+	# Read MPD file
+	rsts = mpd_parser(srv_ip, videoName)
+        vidLength = int(rsts['mediaDuration'])
+        minBuffer = num(rsts['minBufferTime'])
+        reps = rsts['representations']
+
+        vidBWs = {}
+
+        for rep in reps:
+                if not 'audio' in rep:
+                        vidBWs[rep] = int(reps[rep]['bw'])
+                else:
+                        audioID = rep
+                        audioInit = reps[rep]['initialization']
+                        start = reps[rep]['start']
+                        audioName = reps[rep]['name']
+
+        sortedVids = sorted(vidBWs.items(), key=itemgetter(1))
+
+        minID = sortedVids[0][0]
+        vidInit = reps[minID]['initialization']
+        maxBW = sortedVids[-1][1]
+
+        # Read common parameters for all chunks
+        timescale = int(reps[minID]['timescale'])
+        chunkLen = int(reps[minID]['length']) / timescale
+        chunkNext = int(reps[minID]['start'])
+
+        # Start downloading video and audio chunks
+        curBuffer = 0
+        chunk_download = 0
+        loadTS = time.time()
+        print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
+        vchunk_sz = download_chunk(srv_ip, videoName, vidInit)
+        startTS = time.time()
+        print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
+        est_bw = vchunk_sz * 8 / (startTS - loadTS)
+        print "|-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|"
+        preTS = startTS
+        chunk_download += 1
+        curBuffer += chunkLen
+
+        client_tr = {}
+
+        while (chunkNext * chunkLen < vidLength) :
+                nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
+                vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
+                loadTS = time.time();
+                vchunk_sz = download_chunk(selected_srv_ip, videoName, vidChunk)
+                curTS = time.time()
+                est_bw = vchunk_sz * 8 / (curTS - loadTS)
+                time_elapsed = curTS - preTS
+                # print "[AGENP] Time Elapsed when downloading :" + str(time_elapsed)
+                if time_elapsed > curBuffer:
+                        freezingTime = time_elapsed - curBuffer
+                        curBuffer = 0
+                        # print "[AGENP] Client freezes for " + str(freezingTime)
+                else:
+                        freezingTime = 0
+                        curBuffer = curBuffer - time_elapsed
+
+                # Compute QoE of a chunk here
+                curBW = num(reps[nextRep]['bw'])
+                chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
+                # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
+                print "|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|"
+
+                client_tr[chunkNext] = dict(Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime)
+
+                # Update iteration information
+                curBuffer = curBuffer + chunkLen
+                if curBuffer > 30:
+                        time.sleep(chunkLen)
+                preTS = curTS
+                chunk_download += 1
+                chunkNext += 1
+
+        trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+        with open(trFileName, 'w') as outfile:
+                json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+
+        shutil.rmtree('./tmp')
+
+        # Upload the trace file to google cloud
+        bucketName = "agens-data"
+        gsAuthFile = "./info/auth.json"
+        gs_upload(gsAuthFile, bucketName, trFileName)
+		
+# ================================================================================
+# Client agent to run QoE driven Adaptive Server Selection DASH
+# @input : cache_agent --- Cache agent that is closest to the client
+#	   server_addrs --- Candidate servers {name:ip} to download a videos
+#	   videoName --- The name of the video the user is requesting
+#	   clientID --- The ID of client.
+#	   alpha --- The forgetting factor of local QoE evaluation
+# ================================================================================
+def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
+	# Initialize servers' qoe
+        cache_agent_ip = server_addrs[cache_agent]
+	server_qoes = {}
+	for key in server_addrs:
+		server_qoes[key] = 4
+
+        # Selecting a server with maximum QoE
+        selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
+        pre_selected_srv = selected_srv
+        selected_srv_ip = server_addrs[selected_srv]
+
+        rsts = mpd_parser(selected_srv_ip, videoName)
+        vidLength = int(rsts['mediaDuration'])
+        minBuffer = num(rsts['minBufferTime'])
+        reps = rsts['representations']
+
+        vidBWs = {}
+        for rep in reps:
+                if not 'audio' in rep:
+                        vidBWs[rep] = int(reps[rep]['bw'])
+                else:
+                        audioID = rep
+                        audioInit = reps[rep]['initialization']
+                        start = reps[rep]['start']
+                        audioName = reps[rep]['name']
+
+        sortedVids = sorted(vidBWs.items(), key=itemgetter(1))
+
+        minID = sortedVids[0][0]
+        vidInit = reps[minID]['initialization']
+        maxBW = sortedVids[-1][1]
+
+        # Read common parameters for all chunks
+        timescale = int(reps[minID]['timescale'])
+        chunkLen = int(reps[minID]['length']) / timescale
+        chunkNext = int(reps[minID]['start'])
+
+        # Start downloading video and audio chunks
+        curBuffer = 0
+        chunk_download = 0
+        loadTS = time.time()
+        print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
+        print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+        achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
+        vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
+        startTS = time.time()
+        print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
+        est_bw = (achunk_sz + vchunk_sz) * 8 / (startTS - loadTS)
+        # print "[AGENP] Estimated bandwidth is : " + str(est_bw) + " at chunk #init"
+        print "|-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|"
+        preTS = startTS
+        chunk_download += 1
+        curBuffer += chunkLen
+
+        client_tr = {}
+
+        while (chunkNext * chunkLen < vidLength) :
+		# Compute the representation for the next chunk to be downloaded                
+		nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
+
+		# Greedily increase the bitrate because server is switched to a better one
+		if (pre_selected_srv != selected_srt):
+			nextRep = nextRep + 1
+
+                vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
+                # auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
+                loadTS = time.time();
+                # print "[AGENP] Download chunk: #" + str(chunkNext) + " at representation " + nextRep
+                # achunk_sz = download_chunk(selected_srv_ip, videoName, auChunk)
+                vchunk_sz = download_chunk(selected_srv_ip, videoName, vidChunk)
+                curTS = time.time()
+                # est_bw = (achunk_sz + vchunk_sz) * 8 / (curTS - loadTS)
+                est_bw = vchunk_sz * 8 / (curTS - loadTS)
+                # print "[AGENP] Received chunk # " + str(chunkNext) + " at " + datetime.datetime.fromtimestamp(int(curTS)).strftime("%H:%M:%S")
+                # print "[AGENP] Estimated bandwidth is : " + str(est_bw) + " at chunk #" + str(chunkNext)
+                # print "[AGENP] Current Buffer Size : " + str(curBuffer)
+                time_elapsed = curTS - preTS
+                # print "[AGENP] Time Elapsed when downloading :" + str(time_elapsed)
+                if time_elapsed > curBuffer:
+                        freezingTime = time_elapsed - curBuffer
+                        curBuffer = 0
+                        # print "[AGENP] Client freezes for " + str(freezingTime)
+                else:
+                        freezingTime = 0
+                        curBuffer = curBuffer - time_elapsed
+
+                # Compute QoE of a chunk here
+                curBW = num(reps[nextRep]['bw'])
+                chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
+                # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
+                print "|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|"
+
+                client_tr[chunkNext] = dict(Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime)
+		
+                # Update QoE evaluations on local client
+                server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
+
+		# Selecting a server with maximum QoE
+        	pre_selected_srv = selected_srv
+		selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
+                selected_srv_ip = server_addrs[selected_srv]
+                print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
+                print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+
+                # Update iteration information
+                curBuffer = curBuffer + chunkLen
+                if curBuffer > 30:
+                        time.sleep(chunkLen)
+                preTS = curTS
+                chunk_download += 1
+                chunkNext += 1
+
+        trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+        with open(trFileName, 'w') as outfile:
+                json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+
+        shutil.rmtree('./tmp')
+
+        # Upload the trace file to google cloud
+        bucketName = "agens-data"
+        gsAuthFile = "./info/auth.json"
+        gs_upload(gsAuthFile, bucketName, trFileName)		
+
+# ================================================================================
+# Client agent to run collaborative QoE driven Adaptive Server Selection DASH
 # @input : cache_agent --- Cache agent that is closest to the client
 #	   server_addrs --- Candidate servers {name:ip} to download a videos
 #	   videoName --- The name of the video the user is requesting
 #	   clientID --- The ID of client.
 # ================================================================================
-def client_agent(cache_agent, server_addrs, videoName, clientID):
+def cqas_dash(cache_agent, server_addrs, videoName, clientID):
 	# Initialize servers' qoe
 	cache_agent_ip = server_addrs[cache_agent]
 	qoe_vector = query_QoE(cache_agent_ip)
@@ -113,6 +344,7 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 
 	# Selecting a server with maximum QoE
 	selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
+	pre_selected_srv = selected_srv
 	selected_srv_ip = server_addrs[selected_srv]
 
 	rsts = mpd_parser(selected_srv_ip, videoName)
@@ -148,11 +380,12 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	loadTS = time.time()
 	print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
 	print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
-	achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
+	# achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
 	vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
 	startTS = time.time()
 	print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
-	est_bw = (achunk_sz + vchunk_sz) * 8 / (startTS - loadTS)
+	# est_bw = (achunk_sz + vchunk_sz) * 8 / (startTS - loadTS)
+	est_bw = vchunk_sz * 8 / (startTS - loadTS)
 	# print "[AGENP] Estimated bandwidth is : " + str(est_bw) + " at chunk #init"
 	print "|-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|"
 	preTS = startTS
@@ -164,13 +397,14 @@ def client_agent(cache_agent, server_addrs, videoName, clientID):
 	while (chunkNext * chunkLen < vidLength) :
 		nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
 		vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
-		auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
+		# auChunk = reps[audioID]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
 		# print "[AGENP] Download chunk: #" + str(chunkNext) + " at representation " + nextRep
-		achunk_sz = download_chunk(selected_srv_ip, videoName, auChunk)
+		# achunk_sz = download_chunk(selected_srv_ip, videoName, auChunk)
 		vchunk_sz = download_chunk(selected_srv_ip, videoName, vidChunk)
 		curTS = time.time()
-		est_bw = (achunk_sz + vchunk_sz) * 8 / (curTS - loadTS)
+		# est_bw = (achunk_sz + vchunk_sz) * 8 / (curTS - loadTS)
+		est_bw = vchunk_sz * 8 / (curTS - loadTS)
 		# print "[AGENP] Received chunk # " + str(chunkNext) + " at " + datetime.datetime.fromtimestamp(int(curTS)).strftime("%H:%M:%S")
 		# print "[AGENP] Estimated bandwidth is : " + str(est_bw) + " at chunk #" + str(chunkNext)
 		# print "[AGENP] Current Buffer Size : " + str(curBuffer)

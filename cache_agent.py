@@ -26,7 +26,8 @@ CWD = os.path.abspath('.')
 ## Global Varibles
 PORT = 8615     
 UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server
-QoE = json.loads(open("./info/QoE.json").read())
+# QoE = json.loads(open("./info/QoE.json").read())
+QoE = {}
 agentID = ""
 prevAgent = ""
 nextAgent = ""
@@ -106,8 +107,12 @@ def updateQoE(handler, params):
 		print "[AGENP] Updated QoE is : " + str(update_qoe) + " for server " + qupdates['s']
         	QoE[qupdates['s']] = update_qoe
         	# Update QoE.json file
-        	with open("./info/QoE.json", 'w') as qoeFile:
-			json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
+        	# with open("./info/QoE.json", 'w') as qoeFile:
+		# 	json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
+		# Update QoE to the database
+		cur = con.cursor()
+		cur.execute("UPDATE QoE SET QoE=? WHERE Name=?", (update_qoe, qupdates['s']))
+		con.commit()
 	answerQoE(handler)
 
 def answerOverlayUpdate(handler, cmdStr):
@@ -396,6 +401,9 @@ def initialize(argv):
     # Update what have been cached locally
     update_cached_videos()
 
+    # Initialize Database
+    initializeDB()
+
 # ================================================================================
 # Get external IP address of current agent
 # ================================================================================
@@ -407,7 +415,7 @@ def getIPAddr():
 # Initialize the sqllite database
 # ================================================================================
 def initializeDB():
-    global driver, con, cur, agentID, PORT, prevAgent, nextAgent, cached_videos
+    global driver, con, cur, agentID, PORT, prevAgent, nextAgent, cached_videos, QoE
     driver = gce_authenticate("./info/auth.json")
     agents = driver.list_nodes()
     curIP = getIPAddr()
@@ -415,10 +423,12 @@ def initializeDB():
     curQoE = []
     curAgents.append((agentID, curIP, PORT, prevAgent, nextAgent))
     curQoE.append((agentID, curIP, 5.0))
+    QoE[agentID] = 5.0
     for agent in agents:
 	if agent.id is not agentID:
 		curAgents.append((agent.id, agent.public_ips[0], PORT, "", ""))
 		curQoE.append((agent.id, agent.public_ips[0], 4.0))
+		QoE[agent.id] = 4.0
 
     curCandidates = []
     for vd in cached_videos:
@@ -432,7 +442,7 @@ def initializeDB():
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
 	cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?, ?, ?)", curAgents)
-	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?, ?, ?)", curQoE)
+	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
 	cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
 	con.commit()
     except lite.Error, e:
@@ -459,6 +469,7 @@ def main(argv):
         print '^C received, shutting down server'
         server.socket.close()
 	sched.shutdown()
+	con.close()
 
 if __name__ == '__main__':
     main(sys.argv)
