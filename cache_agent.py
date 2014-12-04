@@ -7,6 +7,7 @@ import string,cgi,time
 import json
 import ntpath
 import sys
+import urllib2
 import sqlite3 as lite
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
@@ -403,7 +404,7 @@ def initialize(argv):
 # Get external IP address of current agent
 # ================================================================================
 def getIPAddr():
-	data = json.loads(urllib.urlopen("http://ip.jsontest.com/").read())
+	data = json.loads(urllib2.urlopen("http://ip.jsontest.com/").read())
 	return data["ip"]
 
 # ================================================================================
