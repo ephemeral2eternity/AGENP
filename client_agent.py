@@ -11,7 +11,7 @@ import requests
 from operator import itemgetter
 from mpd_parser import *
 from download_chunk import *
-from gs_upload import *
+from gcs_upload import *
 
 def findRep(sortedVidBWS, est_bw_val, bufferSz, minBufferSz):
 	for i in range(len(sortedVidBWS)):
@@ -194,8 +194,7 @@ def dash(cache_agent, server_addrs,  videoName, clientID):
 
         # Upload the trace file to google cloud
         bucketName = "agens-data"
-        gsAuthFile = "./info/auth.json"
-        gs_upload(gsAuthFile, bucketName, trFileName)
+        gcs_upload(bucketName, trFileName)
 		
 # ================================================================================
 # Client agent to run QoE driven Adaptive Server Selection DASH
@@ -326,8 +325,7 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
 
         # Upload the trace file to google cloud
         bucketName = "agens-data"
-        gsAuthFile = "./info/auth.json"
-        gs_upload(gsAuthFile, bucketName, trFileName)		
+        gcs_upload(bucketName, trFileName)		
 
 # ================================================================================
 # Client agent to run collaborative QoE driven Adaptive Server Selection DASH
@@ -453,5 +451,4 @@ def cqas_dash(cache_agent, server_addrs, videoName, clientID):
 
 	# Upload the trace file to google cloud
 	bucketName = "agens-data"
-	gsAuthFile = "./info/auth.json"
-	gs_upload(gsAuthFile, bucketName, trFileName)
+	gcs_upload(bucketName, trFileName)
