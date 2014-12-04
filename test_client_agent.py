@@ -2,6 +2,7 @@
 from client_agent import *
 from ping import *
 from get_available_srvs import *
+from gcs_upload import *
 import operator
 
 # Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
@@ -21,6 +22,13 @@ def test_client_agent(clientID, candidates, port, videoName):
 		rtt = getRTT(server_ips[srv], 5)
 		mnRtt = sum(rtt) / float(len(rtt))
 		server_rtts[srv] = mnRtt
+
+	# Upload the ping RTTs to google cloud storage
+	pingFile = "./data/" + clientID + ".json"
+	with open(pingFile, 'w') as outfile:
+		json.dump(server_rtts, pingFile, sort_keys = True, indent = 4, ensure_ascii=False)
+	bucketName = "agens-data"
+	gcs_upload(bucketName, pingFile)
 
 	# Attach the closest server as cache agent
 	sorted_rtts = sorted(server_rtts.items(), key=operator.itemgetter(1))
