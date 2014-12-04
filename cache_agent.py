@@ -347,7 +347,7 @@ def bw_monitor():
 
 		# Save TS to the database
 		cur = con.cursor()
-		cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw))
+		cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw)
 		con.commit()
 
 		# Save TS to google cloud
@@ -382,7 +382,7 @@ def demand_monitor():
 
 	# Save TS to the database
 	cur = con.cursor()
-	cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres)))
+	cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres))
 	con.commit()
 
 	print "==================================================="
