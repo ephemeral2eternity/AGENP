@@ -103,7 +103,7 @@ def answerQoE(handler):
 	handler.wfile.write("Updated QoE is: " + json.dumps(QoE))
 
 def updateQoE(handler, params):
-	global QoE
+	global QoE, con, cur
 	if len(params) >= 3:
 		qupdates = getQoE(params)
         	update_qoe = num(qupdates['q']) * delta + QoE[qupdates['s']] * (1 - delta)
@@ -333,7 +333,7 @@ def get_tx_bytes():
 # Monitor outbound traffic every 5 seconds. 
 # ================================================================================
 def bw_monitor():
-	global previousBytes, bwTrace, agentID
+	global previousBytes, bwTrace, agentID, con, cur
 	if previousBytes < 0:
 		previousBytes = get_tx_bytes()
 	else:
@@ -373,7 +373,7 @@ def bw_monitor():
 # cache agent in 1 minutes.
 # ================================================================================
 def demand_monitor():
-	global client_addrs
+	global client_addrs, con, cur
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
 		" clients connecting to this server in last 1 minutes."
 	
