@@ -299,15 +299,17 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
 
                 client_tr[chunkNext] = dict(Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
 		
-                # Update QoE evaluations on local client
-                server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
+		# Switching servers only after two chunks
+		if chunkNext > 2:
+                	# Update QoE evaluations on local client
+                	server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
 
-		# Selecting a server with maximum QoE
-        	pre_selected_srv = selected_srv
-		selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
-                selected_srv_ip = server_addrs[selected_srv]
-                print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
-                print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+			# Selecting a server with maximum QoE
+        		pre_selected_srv = selected_srv
+			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
+                	selected_srv_ip = server_addrs[selected_srv]
+                	# print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
+                	# print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
 
                 # Update iteration information
                 curBuffer = curBuffer + chunkLen
