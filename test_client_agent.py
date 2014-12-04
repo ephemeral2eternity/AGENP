@@ -6,7 +6,7 @@ from gcs_upload import *
 import operator
 
 # Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
-def test_client_agent(clientID, candidates, port, videoName):
+def test_client_agent(clientID, cache_agent, candidates, port, videoName):
 	server_ips = get_available_srvs()
 
 	# Get server addresses for candidate servers
@@ -32,13 +32,13 @@ def test_client_agent(clientID, candidates, port, videoName):
 
 	# Attach the closest server as cache agent
 	sorted_rtts = sorted(server_rtts.items(), key=operator.itemgetter(1))
-	cache_agent = sorted_rtts[0][0]
+	selected_srv = sorted_rtts[0][0]
 	print "########## The cache agent is : " + cache_agent + ". ##############"
 
 	# Perform simple DASH streaming
 	dashID = clientID + '-DASH'
 	print "=========== DASH Streaming for " + dashID + "  ============="
-	dash(cache_agent, server_addrs, videoName, dashID)
+	dash(cache_agent, selected_srv, server_addrs, videoName, dashID)
 
 	# Perform QAS DASH streaming
 	qasdashID = clientID + '-QAS_DASH'

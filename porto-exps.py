@@ -3,6 +3,7 @@ from test_client_agent import *
 
 port = 8615
 video = 'BBB'
+cache_agent = 'agens-05'
 
 # Experiment 1: two candidate servers within the same zone in the same region
 candidates = ['agens-04', 'agens-05']

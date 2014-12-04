@@ -112,9 +112,9 @@ def get_server_QoE(qoe_vector, server_addrs):
 #	   videoName --- The name of the video the user is requesting
 #	   clientID --- The ID of client.
 # ================================================================================
-def dash(cache_agent, server_addrs,  videoName, clientID):
+def dash(cache_agent, selected_srv, server_addrs,  videoName, clientID):
 	# Initialize server addresses
-	srv_ip = server_addrs[cache_agent]
+	srv_ip = server_addrs[selected_srv]
 
 	# Read MPD file
 	rsts = mpd_parser(srv_ip, videoName)
@@ -181,9 +181,9 @@ def dash(cache_agent, server_addrs,  videoName, clientID):
                 curBW = num(reps[nextRep]['bw'])
                 chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
                 # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
-                print "|---", str(curTS), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", cache_agent, "---|"
+                print "|---", str(int(curTS)), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", cache_agent, "---|"
 
-                client_tr[chunkNext] = dict(TS=curTS, Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=cache_agent)
+                client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=cache_agent)
 
                 # Update iteration information
                 curBuffer = curBuffer + chunkLen
@@ -217,10 +217,10 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
 	server_qoes = {}
 	for key in server_addrs:
 		server_qoes[key] = 4
+	server_qoes[cache_agent] = 5
 
         # Selecting a server with maximum QoE
-        # selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
-        selected_srv = cache_agent
+        selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
         pre_selected_srv = selected_srv
         selected_srv_ip = server_addrs[selected_srv]
 
@@ -296,9 +296,9 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
                 curBW = num(reps[nextRep]['bw'])
                 chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
                 # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
-                print "|---", str(curTS),  "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
+                print "|---", str(int(curTS)),  "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 
-                client_tr[chunkNext] = dict(TS=curTS, Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
+                client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
 		
 		# Switching servers only after two chunks
 		if chunkNext > 5:
@@ -344,8 +344,7 @@ def cqas_dash(cache_agent, server_addrs, videoName, clientID):
 	server_qoes = get_server_QoE(qoe_vector, server_addrs)
 
 	# Selecting a server with maximum QoE
-	# selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
-	selected_srv = cache_agent
+	selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 	pre_selected_srv = selected_srv
 	selected_srv_ip = server_addrs[selected_srv]
 
@@ -413,9 +412,9 @@ def cqas_dash(cache_agent, server_addrs, videoName, clientID):
 		curBW = num(reps[nextRep]['bw'])
 		chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
 		# print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
-		print "|---", str(curTS), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
+		print "|---", str(int(curTS)), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 		
-		client_tr[chunkNext] = dict(TS=curTS, Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
+		client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
 
 		# Count Previous QoE average
 		if chunkNext%5 == 0:
