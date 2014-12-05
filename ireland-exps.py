@@ -11,7 +11,7 @@ server_ips = get_available_srvs()
 print "=========== Pinging All Agents ============="
 srv_rtts = {}
 for srv in server_ips.keys():
-	if srv is not "agens-web":
+	if srv != "agens-web":
 		print "=========== Pinging " + srv + "  ============="
 		rtt = getRTT(server_ips[srv], 5)
                 mnRtt = sum(rtt) / float(len(rtt))
