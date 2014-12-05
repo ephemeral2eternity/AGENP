@@ -423,7 +423,7 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID):
 		client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
 
 		# Count Previous QoE average
-		if chunkNext%5 == 0:
+		if chunkNext%5 == 0 and chunkNext > 4:
 			mnQoE = averageQoE(client_tr)
 			qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs)
