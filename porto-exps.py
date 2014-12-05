@@ -1,9 +1,26 @@
 # Script to run experiments from INESC-Porto client
 from test_client_agent import *
+from get_available_srvs import *
+import operator
 
 port = 8615
 video = 'BBB'
 cache_agent = 'agens-05'
+
+## Determine the cache agent from all available agents
+server_ips = get_available_srvs()
+# ping all servers and get the mean RTT
+print "=========== Pinging All Agents ============="
+srv_rtts = {}
+for srv in server_ips.keys():
+        if srv != "agens-web":
+                print "=========== Pinging " + srv + "  ============="
+                rtt = getRTT(server_ips[srv], 5)
+                mnRtt = sum(rtt) / float(len(rtt))
+                srv_rtts[srv] = mnRtt
+
+sorted_rtts = sorted(srv_rtts.items(), key=operator.itemgetter(1))
+cache_agent = sorted_rtts[0][0]
 
 # Experiment 1: two candidate servers within the same zone in the same region
 candidates = ['agens-04', 'agens-05']
