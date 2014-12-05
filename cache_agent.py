@@ -391,6 +391,7 @@ def bw_monitor():
 # ================================================================================
 def demand_monitor():
 	global client_addrs, con
+	demand = len(client_addrs)
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
 		" clients connecting to this server in last 1 minutes."
 	
@@ -401,7 +402,7 @@ def demand_monitor():
     	try:
 		connection = lite.connect('agens.db')
 		cur = connection.cursor()
-		cur.execute('''INSERT INTO DEMAND(TS, USERNUM) VALUES(?, ?)''', (int(curTS), length(client_addrs)))
+		cur.execute('''INSERT INTO DEMAND(TS, USERNUM) VALUES(?, ?)''', (int(curTS), demand))
 		connection.commit()
 		connection.close()
     	except lite.Error, e:
