@@ -343,7 +343,7 @@ def get_tx_bytes():
 # Monitor outbound traffic every 5 seconds. 
 # ================================================================================
 def bw_monitor():
-	global previousBytes, bwTrace, agentID
+	global previousBytes, bwTrace, agentID, con
 	if previousBytes < 0:
 		previousBytes = get_tx_bytes()
 	else:
@@ -359,7 +359,7 @@ def bw_monitor():
     		try:
 			connection = lite.connect('agens.db')
 			cur = connection.cursor()
-			cur.execute("INSERT INTO BW(TS, BW) VALUES(?, ?)", int(curTS), out_bw)
+			cur.execute('''INSERT INTO BW(TS, BW) VALUES(?, ?)''', (int(curTS), out_bw))
 			connection.commit()
 			connection.close()
     		except lite.Error, e:
@@ -390,7 +390,7 @@ def bw_monitor():
 # cache agent in 1 minutes.
 # ================================================================================
 def demand_monitor():
-	global client_addrs
+	global client_addrs, con
 	print "[AGENP-Monitoring] There are " + str(len(client_addrs)) + \
 		" clients connecting to this server in last 1 minutes."
 	
@@ -401,7 +401,7 @@ def demand_monitor():
     	try:
 		connection = lite.connect('agens.db')
 		cur = connection.cursor()
-		cur.execute("INSERT INTO DEMAND(TS, NUMBER) VALUES(?, ?)", int(curTS), length(client_addres))
+		cur.execute('''INSERT INTO DEMAND(TS, USERNUM) VALUES(?, ?)''', (int(curTS), length(client_addrs)))
 		connection.commit()
 		connection.close()
     	except lite.Error, e:
@@ -500,7 +500,7 @@ def initializeDB():
 	cur.execute("CREATE TABLE Agents(Name TEXT, Addr TEXT, port INT)")
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
 	cur.execute("CREATE TABLE BW(TS INT, BW INT)")
-	cur.execute("CREATE TABLE DEMAND(TS INT, NUMBER INT)")
+	cur.execute("CREATE TABLE DEMAND(TS INT, USERNUM INT)")
 	# cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?)", curAgents)
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
