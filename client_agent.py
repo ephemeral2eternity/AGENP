@@ -96,12 +96,16 @@ def update_QoE(cache_agent, qoe, server_name):
 #	   server_addrs --- Candidate servers {name:ip} to download a videos
 # @return: srv_qoe --- QoEs of candidate servers {srv:qoe}
 # ================================================================================
-def get_server_QoE(qoe_vector, server_addrs):
+def get_server_QoE(qoe_vector, server_addrs, candidates):
 	srv_qoe = {}
-	for srv_name in server_addrs.keys():
+	for srv_name in candidates:
 		if srv_name not in qoe_vector.keys():
-			print "[AGENP-ERROR] Input server name " + srv_name + " does not exist!!!"
+			print "[CQAS-DASH] Input server name " + srv_name + " does not exist in QoE vector. Check if the cache agent's QoE table is successfully built!!!"
 			sys.exit(1)
+		if srv_name not in server_addrs.keys():
+			print "[CQAS-DASH] Input server name " + srv_name + " does not exist in server_addrs, please check if the server is still on!!!"
+			sys.exit(1)
+
 		srv_qoe[srv_name] = qoe_vector[srv_name]
 	return srv_qoe
 	
@@ -112,7 +116,7 @@ def get_server_QoE(qoe_vector, server_addrs):
 #	   videoName --- The name of the video the user is requesting
 #	   clientID --- The ID of client.
 # ================================================================================
-def dash(cache_agent, selected_srv, server_addrs,  videoName, clientID):
+def dash(cache_agent, server_addrs, selected_srv, videoName, clientID):
 	# Initialize server addresses
 	srv_ip = server_addrs[selected_srv]
 
@@ -211,13 +215,15 @@ def dash(cache_agent, selected_srv, server_addrs,  videoName, clientID):
 #	   clientID --- The ID of client.
 #	   alpha --- The forgetting factor of local QoE evaluation
 # ================================================================================
-def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
+def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
 	# Initialize servers' qoe
         cache_agent_ip = server_addrs[cache_agent]
 	server_qoes = {}
-	for key in server_addrs:
-		server_qoes[key] = 4
-	server_qoes[cache_agent] = 5
+	for key in candidates:
+		if key is cache_agent:
+			server_qoes[key] = 5
+		else:
+			server_qoes[key] = 4
 
         # Selecting a server with maximum QoE
         selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
@@ -337,11 +343,11 @@ def qas_dash(cache_agent, server_addrs, videoName, clientID, alpha):
 #	   videoName --- The name of the video the user is requesting
 #	   clientID --- The ID of client.
 # ================================================================================
-def cqas_dash(cache_agent, server_addrs, videoName, clientID):
+def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID):
 	# Initialize servers' qoe
 	cache_agent_ip = server_addrs[cache_agent]
 	qoe_vector = query_QoE(cache_agent_ip)
-	server_qoes = get_server_QoE(qoe_vector, server_addrs)
+	server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
 
 	# Selecting a server with maximum QoE
 	selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
