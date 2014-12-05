@@ -38,7 +38,7 @@ def test_client_agent(clientID, cache_agent, candidates, port, videoName):
 	# Perform simple DASH streaming
 	dashID = clientID + '-DASH'
 	print "=========== DASH Streaming for " + dashID + "  ============="
-	dash(cache_agent, selected_srv, server_ips, server_addrs, videoName, dashID)
+	dash(cache_agent, server_addrs, selected_srv, videoName, dashID)
 
 	# Perform QAS DASH streaming
 	qasdashID = clientID + '-QAS_DASH'
