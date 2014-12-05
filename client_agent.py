@@ -426,7 +426,7 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID):
 		if chunkNext%5 == 0 and chunkNext > 4:
 			mnQoE = averageQoE(client_tr)
 			qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
-			server_qoes = get_server_QoE(qoe_vector, server_addrs)
+			server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
 			# Selecting a server with maximum QoE
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
 			selected_srv_ip = server_addrs[selected_srv]
