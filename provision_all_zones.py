@@ -24,7 +24,6 @@ zones = ["asia-east1-a",
 	 "asia-east1-b",
 	 "asia-east1-c",
 	 "europe-west1-b",
-	 "europe-west1-b",
 	 "europe-west1-c",
 	 "us-central1-a",
 	 "us-central1-b",
@@ -33,7 +32,7 @@ zones = ["asia-east1-a",
 # Provision node in all available zones
 i = 1
 for zone in zones:
-	nodeID = "agens-" + str(i).zfill(2)
+	nodeID = "cache-agent-" + str(i).zfill(2)
 	print "========= Provision f1-micro in Zone " + zone + " ================="
 	node = provision(driver, nodeType, nodeSize, image, zone, nodeID)
 	i = i + 1
