@@ -33,8 +33,11 @@ print all_cache_agents
 sorted_rtts = sorted(srv_rtts.items(), key=operator.itemgetter(1))
 cache_agent = sorted_rtts[0][0]
 
+print "=============== Cache Agent for Client: ", client, " is ", cache_agent, " ======================"
+
 expNum = 10
 clientCandidates = {}
+clientCandidates["cache-agent"] = cache_agent
 
 for i in range(1, expNum + 1):
 	candidates = random.sample(all_cache_agents, 2)
