@@ -49,10 +49,10 @@ for i in range(1, expNum + 1):
 	clientCandidates[expID] = candidates
 	sleep(random.randint(10, 600))
 
-	candidateFile = "./data/" + client + "-candidates.json"
-	with open(candidateFile, 'w') as outfile:
-		json.dump(clientCandidates, outfile, sort_keys = True, ident = 4, ensure_ascii=False)
+candidateFile = "./data/" + client + "-candidates.json"
+with open(candidateFile, 'w') as outfile:
+	json.dump(clientCandidates, outfile, sort_keys = True, ident = 4, ensure_ascii=False)
 
-	# upload the file to google cloud
-	bucketName = "agens-data"
-	gcs_upload(bucketName, candidateFile)
+# upload the file to google cloud
+bucketName = "agens-data"
+gcs_upload(bucketName, candidateFile)
