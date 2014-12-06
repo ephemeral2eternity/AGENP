@@ -47,7 +47,7 @@ for i in range(1, expNum + 1):
 	print candidates
 	test_client_agent(clientID, cache_agent, candidates, port, video)
 	clientCandidates[expID] = candidates
-	sleep(random.randint(10, 600))
+	# sleep(random.randint(10, 100))
 
 candidateFile = "./data/" + client + "-candidates.json"
 with open(candidateFile, 'w') as outfile:

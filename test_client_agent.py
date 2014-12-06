@@ -33,20 +33,26 @@ def test_client_agent(clientID, cache_agent, candidates, port, videoName):
 	# Attach the closest server as cache agent
 	sorted_rtts = sorted(candidate_rtts.items(), key=operator.itemgetter(1))
 	selected_srv = sorted_rtts[0][0]
-	print "########## The cache agent is : " + cache_agent + ". ##############"
 
 	# Perform simple DASH streaming
 	dashID = clientID + '-DASH'
 	print "=========== DASH Streaming for " + dashID + "  ============="
+	print "########## The cache agent is : " + cache_agent + "##############"
+	print "########## The default selected server is : " + selected_srv + " ##############"
 	dash(cache_agent, server_addrs, selected_srv, videoName, dashID)
 
 	# Perform QAS DASH streaming
 	qasdashID = clientID + '-QAS_DASH'
 	print "=========== QAS-DASH Streaming for " + qasdashID + "  ============="
+	print "########## The cache agent is : " + cache_agent + ". ##############"
+	print "########## The default selected server is : " + selected_srv + " ##############"
 	alpha = 0.5
 	qas_dash(cache_agent, server_addrs, candidates, videoName, qasdashID, alpha)
 
 	# Perform Collaborative QAS DASH streaming
 	cqasdashID = clientID + '-CQAS_DASH'
 	print "=========== Collaborative QAS-DASH Streaming for " + cqasdashID + "  ============="
-	cqas_dash(cache_agent, server_addrs, candidates, videoName, cqasdashID)
+	print "########## The cache agent is : " + cache_agent + ". ##############"
+	print "########## The default selected server is : " + selected_srv + " ##############"
+	alpha = 0.5
+	cqas_dash(cache_agent, server_addrs, candidates, videoName, cqasdashID, alpha)
