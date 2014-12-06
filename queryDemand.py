@@ -1,6 +1,7 @@
 import sqlite3 as lite
+import sys
 
-agentID = "agens-02"
+agentID = sys.argv[1]
 
 try:
 	con = lite.connect('agens.db')
