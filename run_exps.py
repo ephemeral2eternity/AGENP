@@ -3,6 +3,7 @@ from test_client_agent import *
 from get_available_srvs import *
 from time import sleep
 import random
+import sys
 import operator
 
 port = 8615
