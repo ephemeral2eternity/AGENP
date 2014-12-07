@@ -22,20 +22,25 @@ def query_QoE(cache_agent):
 #		   srvAddrs --- The addresses of all agents
 # @return: QoEMat --- All server QoE evaluations for these agents (Stored in a dict)
 # ================================================================================
-def getQoEMatrix(agentList, srvIPs):
+def getQoEMatrix(agentList, srvAddrs):
 	QoEMat = {}
 	for agent in agentList:
 		print "Query Agent: " + agent
-		qoe_vector = query_QoE(srvIPs[agent] + ":8615")
+		qoe_vector = query_QoE(srvAddrs[agent])
 		QoEMat[agent] = qoe_vector
 	return QoEMat
 
 # ================================================================================
-agents = ['agens-02', 'agens-04', 'agens-05', 'agens-08', 'agens-09']
+agents = ['cache-agent-01', 'cache-agent-02', 'cache-agent-03', 'cache-agent-04', 'cache-agent-05', 'cache-agent-06', 'cache-agent-07', 'cache-agent-08']
 server_ips = get_available_srvs()
+server_addrs = {}
+for srv in server_ips.keys():
+	if "cache-agent" in srv:
+		server_addrs[srv] = server_ips[srv] + ":8615"
+
 print "All servers on google cloud now are: "
-print server_ips
-qoeDict = getQoEMatrix(agents, server_ips)
+print server_addrs
+qoeDict = getQoEMatrix(agents, server_addrs)
 
 # Upload the ping RTTs to google cloud storage
 qoeMatFile = "./data/QoEMatrix.json"

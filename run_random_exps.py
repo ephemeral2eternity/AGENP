@@ -10,6 +10,8 @@ port = 8615
 video = 'BBB'
 
 client = sys.argv[1]
+# client = 'porto'
+# cache_agent = 'agens-05'
 
 ## Determine the cache agent from all available agents
 server_ips = get_available_srvs()
@@ -46,6 +48,7 @@ for i in range(1, expNum + 1):
 	print candidates
 	test_client_agent(clientID, cache_agent, candidates, port, video)
 	clientCandidates[expID] = candidates
+	# sleep(random.randint(10, 100))
 
 candidateFile = "./data/" + client + "-candidates.json"
 with open(candidateFile, 'w') as outfile:

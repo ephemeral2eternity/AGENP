@@ -52,3 +52,12 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Ignore database
+*.db
+
+# Ignore data
+data/
+
+# Ignore buffered videos
+tmp/
