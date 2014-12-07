@@ -19,4 +19,4 @@ def test_cqas_dash_agent(clientID, cache_agent, candidates, port, videoName):
 	print "=========== CQAS-DASH Streaming for " + cqasdashID + "  ============="
 	print "########## The cache agent is : " + cache_agent + ". ##############"
 	alpha = 0.5
-	cqas_dash(cache_agent, server_addrs, candidates, videoName, qasdashID, alpha)
+	cqas_dash(cache_agent, server_addrs, candidates, videoName, cqasdashID, alpha)
