@@ -4,10 +4,12 @@ from ping import *
 from get_available_srvs import *
 from gcs_upload import *
 import operator
+import json
 
 # Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
 def test_dash_agent(clientID, cache_agent, candidates, port, videoName):
 	server_ips = get_available_srvs()
+	client = clientID.split("-")[0]
 
 	# Get server addresses for candidate servers
 	server_addrs = {}
@@ -15,13 +17,15 @@ def test_dash_agent(clientID, cache_agent, candidates, port, videoName):
 		server_addrs[srv] = server_ips[srv] + ":" + str(port)
 
 	# ping all servers and get the mean RTT
-	print "=========== Pinging Candidate Servers ============="
+	# print "=========== Pinging Candidate Servers ============="
+	RTTs = json.load(open("./info/pings.json"))
 	candidate_rtts = {}
 	for srv in candidates:
-		print "=========== Pinging " + srv + "  ============="
-		rtt = getRTT(server_ips[srv], 5)
-		mnRtt = sum(rtt) / float(len(rtt))
-		candidate_rtts[srv] = mnRtt
+		# print "=========== Pinging " + srv + "  ============="
+		# rtt = getRTT(server_ips[srv], 5)
+		# mnRtt = sum(rtt) / float(len(rtt))
+		# candidate_rtts[srv] = mnRtt
+		candidate_rtts[srv] = RTTs[client][srv]
 
 	# Upload the ping RTTs to google cloud storage
 	pingFile = "./data/" + clientID + "-PING.json"
