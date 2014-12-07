@@ -6,7 +6,7 @@ from gcs_upload import *
 import operator
 
 # Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
-def test_client_agent(clientID, cache_agent, candidates, port, videoName):
+def test_qas_dash_agent(clientID, cache_agent, candidates, port, videoName):
 	server_ips = get_available_srvs()
 
 	# Get server addresses for candidate servers
