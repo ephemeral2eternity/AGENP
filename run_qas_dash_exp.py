@@ -25,7 +25,7 @@ expNum = 6
 for i in range(1, expNum + 1):
 	expID = 'exp' + str(i)
 	candidates = expCandidates[client][expID]
-	clientID = client + "-" + expID
+	clientID = client + "_" + expID
 	print "Selected candidate servers for ", clientID, " are :"
 	for srv in candidates:
 		print srv
