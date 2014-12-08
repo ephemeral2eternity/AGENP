@@ -108,7 +108,7 @@ def updateQoE(handler, params):
 		qupdates = getQoE(params)
 		for s in qupdates.keys():
         		QoE[s] = num(qupdates[s]) * delta + QoE[s] * (1 - delta)
-		print "[AGENP] Updated QoE is : " + str(update_qoe) + " for server " + s
+			print "[AGENP] Updated QoE is : " + str(QoE[s]) + " for server " + s
         	# QoE[qupdates['s']] = update_qoe
         	# Update QoE.json file
         	# with open("./info/QoE.json", 'w') as qoeFile:
