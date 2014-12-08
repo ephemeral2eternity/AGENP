@@ -91,8 +91,24 @@ def query_QoE(cache_agent):
 #	   server_name --- the name of the server the user is downloading chunks from
 # @return: qoe_vector --- QoEs of all servers observed from cache_agent
 # ================================================================================
-def update_QoE(cache_agent, qoe, server_name):
-	r = requests.get("http://" + cache_agent + "/QoE?update&" + "q=" + str(qoe) + "&s=" + server_name)
+# Function has been revised to update_srv_QoEs
+#def update_QoE(cache_agent, qoe, server_name):
+#	r = requests.get("http://" + cache_agent + "/QoE?update&" + "q=" + str(qoe) + "&s=" + server_name)
+#	qoe_vector = json.loads(r.headers['Params'])
+#	return qoe_vector
+
+# ================================================================================
+# Upload user experiences with all candidate servers to the cache agent
+# @input : cache_agent --- The cache agent the user is closest to
+#	   qoe --- User quality experiences with server denoted by server_name over
+#		   5 chunks
+#	   server_name --- the name of the server the user is downloading chunks from
+# @return: qoe_vector --- QoEs of all servers observed from cache_agent
+# ================================================================================
+def update_srv_QoEs(cache_agent, server_qoes):
+	request_str = "http://" + cache_agent + "/QoE?update"
+	for srv in server_qoes.keys():
+		request_str = request_str + "&" + srv + "=" + str(server_qoes[s]) 
 	qoe_vector = json.loads(r.headers['Params'])
 	return qoe_vector
 
@@ -436,7 +452,8 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 		# Count Previous QoE average
 		if chunkNext%5 == 0 and chunkNext > 4:
 			mnQoE = averageQoE(client_tr, selected_srv)
-			qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
+			## qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
+			qoe_vector = update_srv_QoEs(cache_agent_ip, server_qoes)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
 			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
 			print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
