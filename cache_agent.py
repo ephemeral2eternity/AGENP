@@ -104,7 +104,7 @@ def answerQoE(handler):
 
 def updateQoE(handler, params):
 	global QoE, con, cur
-	if len(params) >= 3:
+	if len(params) >= 2:
 		qupdates = getQoE(params)
 		for s in qupdates.keys():
         		QoE[s] = num(qupdates[s]) * delta + QoE[s] * (1 - delta)
