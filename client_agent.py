@@ -108,7 +108,8 @@ def query_QoE(cache_agent):
 def update_srv_QoEs(cache_agent, server_qoes):
 	request_str = "http://" + cache_agent + "/QoE?update"
 	for srv in server_qoes.keys():
-		request_str = request_str + "&" + srv + "=" + str(server_qoes[srv]) 
+		request_str = request_str + "&" + srv + "=" + str(server_qoes[srv])
+	r = requests.get(request_str) 
 	qoe_vector = json.loads(r.headers['Params'])
 	return qoe_vector
 
