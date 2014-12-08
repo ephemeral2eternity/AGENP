@@ -106,9 +106,10 @@ def updateQoE(handler, params):
 	global QoE, con, cur
 	if len(params) >= 3:
 		qupdates = getQoE(params)
-        	update_qoe = num(qupdates['q']) * delta + QoE[qupdates['s']] * (1 - delta)
-		print "[AGENP] Updated QoE is : " + str(update_qoe) + " for server " + qupdates['s']
-        	QoE[qupdates['s']] = update_qoe
+		for s in qupdates.keys():
+        		QoE[s] = num(qupdates[s]) * delta + QoE[s] * (1 - delta)
+		print "[AGENP] Updated QoE is : " + str(update_qoe) + " for server " + s
+        	# QoE[qupdates['s']] = update_qoe
         	# Update QoE.json file
         	# with open("./info/QoE.json", 'w') as qoeFile:
 		# 	json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
@@ -116,8 +117,9 @@ def updateQoE(handler, params):
     		try:
 			connection = lite.connect('agens.db')
 			cur = connection.cursor()
-			cur.execute("UPDATE QoE SET QoE=? WHERE Name=?", (update_qoe, qupdates['s']))
-			connection.commit()
+			for s in qupdates.keys():
+				cur.execute("UPDATE QoE SET QoE=? WHERE Name=?", (QoE[s], s))
+				connection.commit()
 			connection.close()
     		except lite.Error, e:
 			if connection:
