@@ -1,5 +1,5 @@
 # Script to run experiments from INESC-Porto client
-from test_client_agent import *
+from test_cqas_dash_agent import *
 from get_available_srvs import *
 from time import sleep
 import random
@@ -39,14 +39,14 @@ expNum = 1
 clientCandidates = {}
 clientCandidates["cache-agent"] = cache_agent
 
-candidates = ['cache-agent-04', 'cache-agent-05']
+candidates = ['agens-04', 'agens-05']
 
 for i in range(1, expNum + 1):
 	expID = 'exp' + str(i)
 	clientID = client + "-" + expID
 	print "Selected candidate servers for ", clientID, " are :"
 	print candidates
-	test_client_agent(clientID, cache_agent, candidates, port, video)
+	test_cqas_dash_agent(clientID, cache_agent, candidates, port, video)
 	clientCandidates[expID] = candidates
 
 candidateFile = "./data/" + client + "-candidates.json"
