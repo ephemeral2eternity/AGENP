@@ -184,7 +184,8 @@ def dash(cache_agent, server_addrs, selected_srv, videoName, clientID):
         preTS = startTS
         chunk_download += 1
         curBuffer += chunkLen
-
+	
+	# Traces to write to google cloud
         client_tr = {}
 
         while (chunkNext * chunkLen < vidLength) :
@@ -296,7 +297,9 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
         chunk_download += 1
         curBuffer += chunkLen
 
+	# Traces to write out.
         client_tr = {}
+	srv_qoe_tr = {}
 
         while (chunkNext * chunkLen < vidLength) :
 		# Compute the representation for the next chunk to be downloaded                
@@ -327,10 +330,12 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
                 # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
                 print "|---", str(int(curTS)),  "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 
+		# Write out traces
                 client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
-		
+		srv_qoe_tr[chunkNext] = server_qoes	
+	
 		# Switching servers only after two chunks
-		if chunkNext > 5:
+		if chunkNext > 4:
                 	# Update QoE evaluations on local client
                 	server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
 
@@ -349,15 +354,20 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
                 chunk_download += 1
                 chunkNext += 1
 
+	## Write trace files out and upload to google cloud storage
         trFileName = "./data/" + clientID + "-" + videoName + ".json"
         with open(trFileName, 'w') as outfile:
                 json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+	srv_qoe_tr_filename = "./data/" + clientID + "-" + videoName + ".json"
+	with open(srv_qoe_tr_filename, 'w') as outfile:
+		json.dump(srv_qoe_tr_filename, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
         shutil.rmtree('./tmp')
 
         # Upload the trace file to google cloud
         bucketName = "agens-data"
-        gcs_upload(bucketName, trFileName)		
+        gcs_upload(bucketName, trFileName)
+	gcs_upload(bucketName, srv_qoe_tr_filename)
 
 # ================================================================================
 # Client agent to run collaborative QoE driven Adaptive Server Selection DASH
