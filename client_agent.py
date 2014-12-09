@@ -358,9 +358,9 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
         trFileName = "./data/" + clientID + "-" + videoName + ".json"
         with open(trFileName, 'w') as outfile:
                 json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
-	srv_qoe_tr_filename = "./data/" + clientID + "-" + videoName + ".json"
+	srv_qoe_tr_filename = "./data/" + clientID + "-" + videoName + "-srvqoe.json"
 	with open(srv_qoe_tr_filename, 'w') as outfile:
-		json.dump(srv_qoe_tr_filename, outfile, sort_keys=True, indent=4, ensure_ascii=False)
+		json.dump(srv_qoe_tr, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
         shutil.rmtree('./tmp')
 
@@ -429,7 +429,9 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 	chunk_download += 1
 	curBuffer += chunkLen
 
+	## Traces to write out
 	client_tr = {}
+	srv_qoe_tr = {}
 
 	while (chunkNext * chunkLen < vidLength) :
 		nextRep = findRep(sortedVids, est_bw, curBuffer, minBuffer)
@@ -459,10 +461,11 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 		print "|---", str(int(curTS)), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 		
 		client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
+		srv_qoe_tr[chunkNext] = server_qoes
 
 		# Count Previous QoE average
 		if chunkNext%5 == 0 and chunkNext > 4:
-			mnQoE = averageQoE(client_tr, selected_srv)
+			# mnQoE = averageQoE(client_tr, selected_srv)
 			## qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
 			qoe_vector = update_srv_QoEs(cache_agent_ip, server_qoes)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
@@ -490,12 +493,17 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 		chunkNext += 1
 
 	# trFileName = "./data/" + clientID + "-" + videoName + "-" + str(time.time()) + ".json"
+	## Writer out traces files and upload to google cloud
 	trFileName = "./data/" + clientID + "-" + videoName + ".json"
 	with open(trFileName, 'w') as outfile:
 		json.dump(client_tr, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
-
+	srv_qoe_tr_filename = "./data/" + clientID + "-" + videoName + "-srvqoe.json"
+	with open(srv_qoe_tr_filename, 'w') as outfile:
+		json.dump(srv_qoe_tr, outfile, sort_keys = True, indent = 4, ensure_ascii = False)
+	
 	shutil.rmtree('./tmp')
 
 	# Upload the trace file to google cloud
 	bucketName = "agens-data"
 	gcs_upload(bucketName, trFileName)
+	gcs_upload(bucketName, srv_qoe_tr_filename)
