@@ -1,4 +1,6 @@
 # Script to run experiments from INESC-Porto client
+from test_dash_agent import *
+from test_qas_dash_agent import *
 from test_cqas_dash_agent import *
 from get_available_srvs import *
 from time import sleep
@@ -11,7 +13,7 @@ video = 'BBB'
 
 client = sys.argv[1]
 # client = 'porto'
-cache_agent = 'agens-04'
+cache_agent = 'agens-01'
 
 ## Determine the cache agent from all available agents
 #server_ips = get_available_srvs()
@@ -39,20 +41,22 @@ expNum = 1
 clientCandidates = {}
 clientCandidates["cache-agent"] = cache_agent
 
-candidates = ['agens-04', 'agens-05']
+candidates = ['agens-01', 'agens-02']
 
 for i in range(1, expNum + 1):
 	expID = 'exp' + str(i)
 	clientID = client + "-" + expID
 	print "Selected candidate servers for ", clientID, " are :"
 	print candidates
+	test_dash_agent(clientID, cache_agent, candidates, port, video)
+	test_qas_dash_agent(clientID, cache_agent, candidates, port, video)
 	test_cqas_dash_agent(clientID, cache_agent, candidates, port, video)
 	clientCandidates[expID] = candidates
 
-candidateFile = "./data/" + client + "-candidates.json"
-with open(candidateFile, 'w') as outfile:
-	json.dump(clientCandidates, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+# candidateFile = "./data/" + client + "-candidates.json"
+#with open(candidateFile, 'w') as outfile:
+#	json.dump(clientCandidates, outfile, sort_keys = True, indent = 4, ensure_ascii=False)
 
-# upload the file to google cloud
-bucketName = "agens-data"
-gcs_upload(bucketName, candidateFile)
+## upload the file to google cloud
+#bucketName = "agens-data"
+#gcs_upload(bucketName, candidateFile)
