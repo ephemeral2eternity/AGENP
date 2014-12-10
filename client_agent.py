@@ -123,10 +123,10 @@ def get_server_QoE(qoe_vector, server_addrs, candidates):
 	srv_qoe = {}
 	for srv_name in candidates:
 		if srv_name not in qoe_vector.keys():
-			print "[CQAS-DASH] Input server name " + srv_name + " does not exist in QoE vector. Check if the cache agent's QoE table is successfully built!!!"
+			print "[Client-Agent] Input server name " + srv_name + " does not exist in QoE vector. Check if the cache agent's QoE table is successfully built!!!"
 			sys.exit(1)
 		if srv_name not in server_addrs.keys():
-			print "[CQAS-DASH] Input server name " + srv_name + " does not exist in server_addrs, please check if the server is still on!!!"
+			print "[Client-Agent] Input server name " + srv_name + " does not exist in server_addrs, please check if the server is still on!!!"
 			sys.exit(1)
 
 		srv_qoe[srv_name] = qoe_vector[srv_name]
@@ -175,10 +175,10 @@ def dash(cache_agent, server_addrs, selected_srv, videoName, clientID):
         curBuffer = 0
         chunk_download = 0
         loadTS = time.time()
-        print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
+        print "[DASH] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
         vchunk_sz = download_chunk(srv_ip, videoName, vidInit)
         startTS = time.time()
-        print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
+        print "[DASH] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
         est_bw = vchunk_sz * 8 / (startTS - loadTS)
         print "|-- TS -- |-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|-- Server --|"
         preTS = startTS
@@ -289,7 +289,7 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
         # achunk_sz = download_chunk(selected_srv_ip, videoName, audioInit)
         vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
         startTS = time.time()
-        print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
+        print "[QAS-DASH] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
         est_bw = vchunk_sz * 8 / (startTS - loadTS)
         # print "[AGENP] Estimated bandwidth is : " + str(est_bw) + " at chunk #init"
         print "|-- TS --|-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|-- Selected Server --|"
@@ -418,11 +418,11 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 	curBuffer = 0
 	chunk_download = 0
 	loadTS = time.time()
-	print "[AGENP] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
-	print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+	print "[CQAS-DASH] Start downloading video " + videoName + " at " + datetime.datetime.fromtimestamp(int(loadTS)).strftime("%Y-%m-%d %H:%M:%S")
+	print "[CQAS-DASH] Selected server for next 5 chunks is :" + selected_srv
 	vchunk_sz = download_chunk(selected_srv_ip, videoName, vidInit)
 	startTS = time.time()
-	print "[AGENP] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
+	print "[CQAS-DASH] Start playing video at " + datetime.datetime.fromtimestamp(int(startTS)).strftime("%Y-%m-%d %H:%M:%S")
 	est_bw = vchunk_sz * 8 / (startTS - loadTS)
 	print "|-- TS --|-- Chunk # --|- Representation -|-- QoE --|-- Buffer --|-- Freezing --|-- Selected Server --|"
 	preTS = startTS
@@ -469,8 +469,8 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 			## qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
 			qoe_vector = update_srv_QoEs(cache_agent_ip, server_qoes)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
-			print "[AGENP] Received Server QoE is :" + json.dumps(server_qoes)
-			print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+			print "[CQAS-DASH] Received Server QoE is :" + json.dumps(server_qoes)
+			print "[CQAS-DASH] Selected server for next 5 chunks is :" + selected_srv
 
 		# Selecting a server with maximum QoE
 		if chunkNext > 2:
@@ -481,7 +481,7 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
         		pre_selected_srv = selected_srv
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
                 	selected_srv_ip = server_addrs[selected_srv]
-                	print "[QAS-DASH] Update Server QoEs ar :" + json.dumps(server_qoes)
+                	print "[CQAS-DASH] Update Server QoEs ar :" + json.dumps(server_qoes)
                 	# print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
 
 		# Update iteration information
