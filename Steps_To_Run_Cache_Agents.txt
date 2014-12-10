@@ -1,0 +1,9 @@
+Start a cache agent in a Google VM
+1. gcloud compute ssh cache-agent-01
+2.rm agens.db
+3. git pull
+4. screen
+5. python cache_agent.py --agentID cache-agent-01 --port 8615 --peers cache-agent-02 --delta 0.2
+
+Run a client experiment on a google VM
+ ssh -i ~/.ssh/google_compute_engine Chen@104.155.212.68 "\$HOME/run.sh client-1a"

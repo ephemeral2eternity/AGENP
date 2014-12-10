@@ -327,18 +327,23 @@ def qas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha):
                 # Compute QoE of a chunk here
                 curBW = num(reps[nextRep]['bw'])
                 chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
+
+                # Update QoE evaluations on local client
+                server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
                 # print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
                 print "|---", str(int(curTS)),  "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 
 		# Write out traces
                 client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
-		srv_qoe_tr[chunkNext] = server_qoes	
+		# Assign values but not dictionary pointer
+		new_srv_qoes = {}
+		for c in candidates:
+			new_srv_qoes[c] = server_qoes[c]
+		srv_qoe_tr[chunkNext] = new_srv_qoes
+		# srv_qoe_tr[chunkNext] = server_qoes
 	
 		# Switching servers only after two chunks
 		if chunkNext > 4:
-                	# Update QoE evaluations on local client
-                	server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
-
 			# Selecting a server with maximum QoE
         		pre_selected_srv = selected_srv
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
@@ -458,6 +463,8 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 		curBW = num(reps[nextRep]['bw'])
 		chunk_QoE = computeQoE(freezingTime, curBW, maxBW)
 		# print "[AGENP] Current QoE for chunk #" + str(chunkNext) + " is " + str(chunk_QoE)
+                # Update QoE evaluations on local client
+                server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
 		print "|---", str(int(curTS)), "---|---", str(chunkNext), "---|---", nextRep, "---|---", str(chunk_QoE), "---|---", str(curBuffer), "---|---", str(freezingTime), "---|---", selected_srv, "---|"
 		
 		client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
@@ -473,10 +480,7 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 			print "[CQAS-DASH] Selected server for next 5 chunks is :" + selected_srv
 
 		# Selecting a server with maximum QoE
-		if chunkNext > 2:
-                	# Update QoE evaluations on local client
-                	server_qoes[selected_srv] = server_qoes[selected_srv] * (1 - alpha) + alpha * chunk_QoE
-
+		if chunkNext > 4:
 			# Selecting a server with maximum QoE
         		pre_selected_srv = selected_srv
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
