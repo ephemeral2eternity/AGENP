@@ -18,7 +18,7 @@ all_cache_agents = []
 print "=========== Pinging All Agents ============="
 srv_rtts = {}
 for srv in server_ips.keys():
-        if "agens" in srv and "web" not in srv:
+        if "cache" in srv:
                 print "=========== Pinging " + srv + "  ============="
                 rtt = getRTT(server_ips[srv], 5)
                 mnRtt = sum(rtt) / float(len(rtt))
