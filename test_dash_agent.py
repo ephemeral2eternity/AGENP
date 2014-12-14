@@ -21,11 +21,12 @@ def test_dash_agent(clientID, cache_agent, candidates, port, videoName):
 	# RTTs = json.load(open("./info/pings.json"))
 	candidate_rtts = {}
 	for srv in candidates:
-		print "=========== Pinging " + srv + "  ============="
-		rtt = getRTT(server_ips[srv], 5)
-		mnRtt = sum(rtt) / float(len(rtt))
-		candidate_rtts[srv] = mnRtt
-		# candidate_rtts[srv] = RTTs[client][srv]
+		if 'cache' in srv:
+			print "=========== Pinging " + srv + "  ============="
+			rtt = getRTT(server_ips[srv], 5)
+			mnRtt = sum(rtt) / float(len(rtt))
+			candidate_rtts[srv] = mnRtt
+			# candidate_rtts[srv] = RTTs[client][srv]
 
 	# Upload the ping RTTs to google cloud storage
 	pingFile = "./data/" + clientID + "-PING.json"
