@@ -18,7 +18,7 @@ all_cache_agents = []
 print "=========== Pinging All Agents ============="
 srv_rtts = {}
 for srv in server_ips.keys():
-        if "cache-agent" in srv:
+        if "cache" in srv:
                 print "=========== Pinging " + srv + "  ============="
                 rtt = getRTT(server_ips[srv], 5)
                 mnRtt = sum(rtt) / float(len(rtt))
@@ -34,7 +34,7 @@ cache_agent = sorted_rtts[0][0]
 
 print "=============== Cache Agent for Client: ", client, " is ", cache_agent, " ======================"
 
-expNum = 10
+expNum = 1
 clientCandidates = {}
 clientCandidates["cache-agent"] = cache_agent
 
