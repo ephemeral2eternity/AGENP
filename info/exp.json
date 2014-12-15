@@ -24,7 +24,7 @@
 			"exp6" : ["cache-01", "cache-02"]
 		   },
 	"iowa" : {
-			"exp1" : ["cache-07", "cache-08"],
+			"exp1" : ["cache-04", "cache-02"],
 			"exp2" : ["cache-08", "cache-04"],
 			"exp3" : ["cache-05", "cache-03"],
 			"exp4" : ["cache-04", "cache-03"],
@@ -64,7 +64,7 @@
 			"exp6" : ["cache-03", "cache-08"]
 		   },
 	"japan" : {
-			"exp1" : ["cache-01", "cache-02"],
+			"exp1" : ["cache-03", "cache-08"],
 			"exp2" : ["cache-02", "cache-06"],
 			"exp3" : ["cache-07", "cache-08"],
 			"exp4" : ["cache-08", "cache-05"],
