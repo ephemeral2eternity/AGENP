@@ -448,15 +448,16 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 
 		# Greedily increase the bitrate because server is switched to a better one
 		if (pre_selected_srv != selected_srv):
-                        prob = good_chunks[selected_srv] / float(vidLength/chunkLen)
-                        rnd = random.random()
+                        nextRep = increaseRep(sortedVids, nextRep)
+                        #prob = good_chunks[selected_srv] / float(vidLength/chunkLen)
+                        #rnd = random.random()
                         ## Probabilistic switching
-                        if rnd < prob:
-                                print "[CQAS-DASH] Stick with the previous server! The probability is : " + str(prob)
-                                selected_srv = pre_selected_srv
-                        else:
-                             print "[CQAS-DASH]Switch server! The probability is : " + str(prob)
-			     nextRep = increaseRep(sortedVids, nextRep)
+                        #if rnd < prob:
+                        #        print "[CQAS-DASH] Stick with the previous server! The probability is : " + str(prob)
+                        #        selected_srv = pre_selected_srv
+                        #else:
+                        #     print "[CQAS-DASH]Switch server! The probability is : " + str(prob)
+			#     nextRep = increaseRep(sortedVids, nextRep)
 
 		vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
