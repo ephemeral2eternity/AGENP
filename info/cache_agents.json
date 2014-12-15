@@ -1,8 +1,11 @@
 {
-	"oregon" : "cache-08",
-	"california" : "cache-08",
-	"cli-4" : "cache-04",
+	"netherland" : "cache-04",
 	"ireland" : "cache-04",
+	"virginia" : "cache-06",
+	"iowa" : "cache-07",
+	"texas" : "cache-06",
+	"california" : "cache-06",
+	"hongkong" : "cache-03",
 	"singapore" : "cache-03",
-	"tokyo" : "cache-03"
+	"japan" : "cache-01"
 }
