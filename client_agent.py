@@ -8,6 +8,7 @@ import shutil
 import math
 import json
 import requests
+import random
 from operator import itemgetter
 from mpd_parser import *
 from download_chunk import *
@@ -398,6 +399,10 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 	reps = rsts['representations']
 
 	vidBWs = {}
+        good_chunks = {}
+
+        for c in candidates:
+                good_chunks[c] = 0
 
 	for rep in reps:
 		if not 'audio' in rep:
@@ -443,7 +448,15 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 
 		# Greedily increase the bitrate because server is switched to a better one
 		if (pre_selected_srv != selected_srv):
-			nextRep = increaseRep(sortedVids, nextRep)
+                        prob = good_chunks[selected_srv] / float(vidLength/chunkLen)
+                        rnd = random.random()
+                        ## Probabilistic switching
+                        if rnd < prob:
+                                print "[CQAS-DASH] Stick with the previous server! The probability is : " + str(prob)
+                                selected_srv = pre_selected_srv
+                        else:
+                             print "[CQAS-DASH]Switch server! The probability is : " + str(prob)
+			     nextRep = increaseRep(sortedVids, nextRep)
 
 		vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
@@ -469,6 +482,9 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 		
 		client_tr[chunkNext] = dict(TS=int(curTS), Representation=nextRep, QoE=chunk_QoE, Buffer=curBuffer, Freezing=freezingTime, Server=selected_srv)
 		srv_qoe_tr[chunkNext] = server_qoes
+
+                if chunk_QoE > 4.0:
+                        good_chunks[selected_srv] = good_chunks[selected_srv] + 1
 
 		# Count Previous QoE average
 		if chunkNext%5 == 0 and chunkNext > 4:
