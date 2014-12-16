@@ -448,16 +448,16 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 
 		# Greedily increase the bitrate because server is switched to a better one
 		if (pre_selected_srv != selected_srv):
-                        nextRep = increaseRep(sortedVids, nextRep)
-                        #prob = good_chunks[selected_srv] / float(vidLength/chunkLen)
-                        #rnd = random.random()
+                        # nextRep = increaseRep(sortedVids, nextRep)
+                        prob = good_chunks[selected_srv] / float(vidLength/chunkLen)
+                        rnd = random.random()
                         ## Probabilistic switching
-                        #if rnd < prob:
-                        #        print "[CQAS-DASH] Stick with the previous server! The probability is : " + str(prob)
-                        #        selected_srv = pre_selected_srv
-                        #else:
-                        #     print "[CQAS-DASH]Switch server! The probability is : " + str(prob)
-			#     nextRep = increaseRep(sortedVids, nextRep)
+                        if rnd < prob:
+                                print "[CQAS-DASH] Stick with the previous server! The probability is : " + str(prob)
+                                selected_srv = pre_selected_srv
+                        else:
+                             print "[CQAS-DASH]Switch server! The probability is : " + str(prob)
+			     nextRep = increaseRep(sortedVids, nextRep)
 
 		vidChunk = reps[nextRep]['name'].replace('$Number$', str(chunkNext))
 		loadTS = time.time();
@@ -488,13 +488,13 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
                         good_chunks[selected_srv] = good_chunks[selected_srv] + 1
 
 		# Count Previous QoE average
-		if chunkNext%5 == 0 and chunkNext > 4:
+		if chunkNext%10 == 0 and chunkNext > 4:
 			# mnQoE = averageQoE(client_tr, selected_srv)
 			## qoe_vector = update_QoE(cache_agent_ip, mnQoE, selected_srv)
 			qoe_vector = update_srv_QoEs(cache_agent_ip, server_qoes)
 			server_qoes = get_server_QoE(qoe_vector, server_addrs, candidates)
 			print "[CQAS-DASH] Received Server QoE is :" + json.dumps(server_qoes)
-			print "[CQAS-DASH] Selected server for next 5 chunks is :" + selected_srv
+			print "[CQAS-DASH] Selected server for next 10 chunks is :" + selected_srv
 
 		# Selecting a server with maximum QoE
 		if chunkNext > 4:
@@ -503,7 +503,7 @@ def cqas_dash(cache_agent, server_addrs, candidates, videoName, clientID, alpha)
 			selected_srv = max(server_qoes.iteritems(), key=itemgetter(1))[0]
                 	selected_srv_ip = server_addrs[selected_srv]
                 	print "[CQAS-DASH] Update Server QoEs ar :" + json.dumps(server_qoes)
-                	# print "[AGENP] Selected server for next 5 chunks is :" + selected_srv
+                	# print "[AGENP] Selected server for next 10 chunks is :" + selected_srv
 
 		# Update iteration information
 		curBuffer = curBuffer + chunkLen
