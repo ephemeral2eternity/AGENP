@@ -41,7 +41,7 @@ clientCandidates["cache-agent"] = cache_agent
 for i in range(1, expNum + 1):
 	candidates = random.sample(all_cache_agents, 2)
 	expID = 'exp' + str(i)
-	clientID = client + "-" + expID
+	clientID = client + "." + expID
 	print "Selected candidate servers for ", clientID, " are :"
 	print candidates
 	test_client_agent(clientID, cache_agent, candidates, port, video)
