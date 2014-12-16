@@ -9,6 +9,7 @@ import time
 # Define a function to run DASH, QAS_DASH and CQAS_DASH in one client
 def test_client_agent(clientID, cache_agent, candidates, port, videoName):
 	server_ips = get_available_srvs()
+	client = clientID.split("_")[0]
 
 	# Get server addresses for candidate servers
 	server_addrs = {}
