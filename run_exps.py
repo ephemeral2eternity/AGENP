@@ -34,7 +34,7 @@ cache_agent = sorted_rtts[0][0]
 
 print "=============== Cache Agent for Client: ", client, " is ", cache_agent, " ======================"
 
-expNum = 1
+expNum = 10
 clientCandidates = {}
 clientCandidates["cache-agent"] = cache_agent
 
