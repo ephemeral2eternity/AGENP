@@ -17,25 +17,25 @@ def test_client_agent(clientID, cache_agent, candidates, port, videoName):
 		server_addrs[srv] = server_ips[srv] + ":" + str(port)
 
 	## ping all servers and get the mean RTT
-	#print "=========== Pinging Candidate Servers ============="
-	#candidate_rtts = {}
-	#for srv in candidates:
-	#	print "=========== Pinging " + srv + "  ============="
-	#	rtt = getRTT(server_ips[srv], 5)
-	#	mnRtt = sum(rtt) / float(len(rtt))
-	#	candidate_rtts[srv] = mnRtt
+	print "=========== Pinging Candidate Servers ============="
+	candidate_rtts = {}
+	for srv in candidates:
+		print "=========== Pinging " + srv + "  ============="
+		rtt = getRTT(server_ips[srv], 5)
+		mnRtt = sum(rtt) / float(len(rtt))
+		candidate_rtts[srv] = mnRtt
 
 	# ping all servers and get the mean RTT
 	# print "=========== Pinging Candidate Servers ============="
-	RTTs = json.load(open("./info/pings.json"))
-	candidate_rtts = {}
-	for srv in candidates:
-		# if 'cache' in srv:
+	# RTTs = json.load(open("./info/pings.json"))
+	#candidate_rtts = {}
+	#for srv in candidates:
+		#if 'cache' in srv:
 		#	print "=========== Pinging " + srv + "  ============="
 		#	rtt = getRTT(server_ips[srv], 5)
 		#	mnRtt = sum(rtt) / float(len(rtt))
 		#	candidate_rtts[srv] = mnRtt
-		candidate_rtts[srv] = RTTs[client][srv]
+		#candidate_rtts[srv] = RTTs[client][srv]
 
 	# Upload the ping RTTs to google cloud storage
 	pingFile = "./data/" + clientID + "-PING.json"

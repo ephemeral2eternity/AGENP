@@ -34,12 +34,16 @@ cache_agent = sorted_rtts[0][0]
 
 print "=============== Cache Agent for Client: ", client, " is ", cache_agent, " ======================"
 
-expNum = 10
+expNum = 1
+candidateNum = 2
+if candidateNum > len(all_cache_agents):
+	candidateNum = len(all_cache_agents)
+
 clientCandidates = {}
 clientCandidates["cache-agent"] = cache_agent
 
 for i in range(1, expNum + 1):
-	candidates = random.sample(all_cache_agents, 2)
+	candidates = random.sample(all_cache_agents, candidateNum)
 	expID = 'exp' + str(i)
 	clientID = client + "." + expID
 	print "Selected candidate servers for ", clientID, " are :"
