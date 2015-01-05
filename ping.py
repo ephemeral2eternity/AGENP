@@ -10,6 +10,7 @@ import time
 # server_ip = '104.155.15.0'
 PING_PORT = 8717
 
+# Customized Ping Message to a Ping Server using TCP
 def ping(ip):
     # Connect to the server
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,18 +35,18 @@ def getRTT(ip, count):
 	'''
 	Pings a host and return True if it is available, False if not.
 	'''
-	# cmd = ['ping', '-c', str(count), ip]
-	# process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-	# stdout, stderr = process.communicate()
-	# rttList = parsePingRst(stdout, count)
-	# print rttList
+	cmd = ['ping', '-c', str(count), ip]
+	process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+	stdout, stderr = process.communicate()
+	rttList = parsePingRst(stdout, count)
+	print rttList
 
-	# Use customized ping server to answer
-	rttList = []
-	for i in range(count):
-		cur_rtt = ping(ip)
-		rttList.append(cur_rtt)
-		time.sleep(0.05)
+	## Use customized ping server to answer
+	#rttList = []
+	#for i in range(count):
+	#	cur_rtt = ping(ip)
+	#	rttList.append(cur_rtt)
+	#	time.sleep(0.05)
 		
 	return rttList
 

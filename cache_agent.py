@@ -11,6 +11,7 @@ import urllib2
 import sqlite3 as lite
 import shutil
 from gcs_upload import *
+from get_cache_agents import *
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -109,11 +110,6 @@ def updateQoE(handler, params):
 		for s in qupdates.keys():
         		QoE[s] = num(qupdates[s]) * delta + QoE[s] * (1 - delta)
 			print "[AGENP] Updated QoE is : " + str(QoE[s]) + " for server " + s
-        	# QoE[qupdates['s']] = update_qoe
-        	# Update QoE.json file
-        	# with open("./info/QoE.json", 'w') as qoeFile:
-		# 	json.dump(QoE, qoeFile, sort_keys = True, indent = 4, ensure_ascii=False)
-		# Update QoE to the database
     		try:
 			connection = lite.connect('agens.db')
 			cur = connection.cursor()
@@ -125,30 +121,28 @@ def updateQoE(handler, params):
 			if connection:
 				connection.rollback()
 			print "SQLITE DB Error %s" % e.args[0]
-		
-		
-
 	answerQoE(handler)
 
-def answerOverlayUpdate(handler, cmdStr):
-	global prevAgent, nextAgent
+def addPeerQuery(handler, cmdStr):
+	global agentID, peerAgents
 	params = cmdStr.split('&')
 	for param in params:
 		if '=' in param:
 			items = param.split('=', 2)
-			if items[0] == 'p':
-				prevAgent = items[1]
-			elif items[0] == 'n':
-				nextAgent = items[1]
+			peerAgents.append(items[1])
 	answerOverlayQuery(handler)
 
 def answerOverlayQuery(handler):
-	global agentID, prevAgent, nextAgent
+	global agentID, peerAgents
 	handler.send_response(200)
 	handler.send_header('Content-type', 'text/html')
-	handler.send_header('Params', {'Prev': prevAgent, 'Next': nextAgent})
+	handler.send_header('Params', {'Peers': peerAgents})
 	handler.end_headers()
-	handler.wfile.write("<h2>The Overlay Info</h2><ul><li>The agent: " + agentID + "</li><li>Predecessor: " + prevAgent + "</li><li>Successor: " + nextAgent+ "</li></ul>")
+	outHtml = "<h2>The peers of agent " + agentID + "</h2><ul>"
+	for peer in peerAgents:
+		outHtml = outHtml + "<li>" + peer + "</li>"
+	outHtml = outHtml + "</ul>"
+	handler.wfile.write(outHtml)
 
 def queryVideos(handler):
 	global cached_videos
@@ -275,8 +269,10 @@ class MyHandler(BaseHTTPRequestHandler):
 		cmdStr = self.path.split('?', 2)[1]
 		if 'query' in cmdStr:
 			answerOverlayQuery(self)
-		if 'update' in cmdStr:
-			answerOverlayUpdate(self, cmdStr)
+		#if 'update' in cmdStr:
+		#	answerOverlayUpdate(self, cmdStr)
+		if 'add' in cmdStr:
+			addOverlayPeer(self, cmdStr)
 		return
 
             elif self.path.endswith(".html"):
@@ -412,7 +408,6 @@ def demand_monitor():
 			connection.rollback()
 		print "SQLITE DB Error %s" % e.args[0]
 		
-
 	print "==================================================="
 	for client in client_addrs:
 		print client
@@ -434,27 +429,83 @@ def update_cached_videos():
 	cached_videos.append(ntpath.basename(video))
 
 # ================================================================================
+# Get Current Agent ID from its external IP address
+# ================================================================================
+def getAgentID():
+    cache_agents = get_cache_agents()
+    cur_ip = getIPAddr()
+    agent_id = ""
+
+    for agent in cache_agents:
+	if cur_ip in agent.public_ips:
+		agent_id = agent.name
+		break
+
+    return agent_id
+
+# ================================================================================
+# Try to add current node as a peer to an existing available node
+# Inputs:
+# 	name: existing node's name (agentID)
+# 	ip: existing node's ip address
+# Return:
+#	True: successfull. False: failed.
+# ================================================================================
+def add_peer(name, ip):
+  global agentID, PORT, peerAgents
+  r = requests.get("http://" + ip + ":" + str(PORT)) + "/overlay?add&peer=" + agentID)
+  if r.status_code == requests.codes.ok:
+	peerAgents.append(name)
+	return True
+  else:
+	return False
+
+# ================================================================================
+# Add closest available agents as the peer agent
+# ================================================================================
+def addPeerAgents():
+   global agentID, peerAgents
+   agent_ips = get_cache_agent_ips()
+
+   ## Ping all other agents
+   peer_rtts = {}
+   for agent in agent_ips.keys():
+	if agent is not agentID:
+		rtt = getRTT(agent_ips[agent], 5)
+		mnRtt = sum(rtt) / float(len(rtt))
+		peer_rtts[agent] = mnRtt
+
+  ## Sort all peers by rtts to them
+  sorted_peers = sorted(peer_rtts.items(), key=operator.itemgetter(1))
+
+  ## Try to add a peer from the closest one
+  for peer in sorted_peers:
+	if add_peer(peer[0], peer[1]):
+		break
+	
+# ================================================================================
 # Initialize the global variables with input arguments
 # @argv: system inpute arguments
 # ================================================================================
-def initialize(argv):
+def initialize():
     global agentID, PORT, peerAgents, delta
     # Parse the input arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--agentID", help="The agent ID of current agent!")
-    parser.add_argument("--port", type=int, help="The port number the agent is running on!")
-    parser.add_argument("--peers", nargs='+', help="The peer agent!")
-    parser.add_argument("--delta", type=float, help="The delta coefficient to forget previous QoE observations!")
-
-    args = parser.parse_args()
-    if args.agentID:
-	agentID = args.agentID
-    if args.port:
-	PORT = args.port
-    if args.peers:
-	peerAgents = args.peers
-    if args.delta:
-        delta = args.delta
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--agentID", help="The agent ID of current agent!")
+    # parser.add_argument("--port", type=int, help="The port number the agent is running on!")
+    # parser.add_argument("--peers", nargs='+', help="The peer agent!")
+    # parser.add_argument("--delta", type=float, help="The delta coefficient to forget previous QoE observations!")
+    # args = parser.parse_args()
+    # if args.agentID:
+    #	agentID = args.agentID
+    # if args.port:
+    #	PORT = args.port
+    # if args.peers:
+    #	peerAgents = args.peers
+    # if args.delta:
+    #    delta = args.delta
+    agentID = getAgentID()
+    addPeerAgents()
     print "Agent ID: ", agentID
     print "Listening Port: ", str(PORT)
     print "Peer Agents: ", peerAgents
@@ -478,23 +529,16 @@ def getIPAddr():
 # ================================================================================
 def initializeDB():
     global driver, con, cur, agentID, PORT, cached_videos, QoE
-    driver = gce_authenticate("./info/auth.json")
-    agents = driver.list_nodes()
-    curIP = getIPAddr()
-    curAgents = []
-    curQoE = []
+    agent_ips = get_cache_agent_ips()
+    curIP = agent_ips[agentID]
     curAgents.append((agentID, curIP, PORT))
     curQoE.append((agentID, curIP, 5.0))
-    for agent in agents:
-	if agent.name is not agentID:
-		curAgents.append((agent.name, agent.public_ips[0], PORT))
-		curQoE.append((agent.name, agent.public_ips[0], 4.0))
-		QoE[agent.name] = 4.0
+    for key, value in agent_ips.iteritems():
+	if key is not agentID:
+		curAgents.append((key, value, PORT))
+		curQoE.append((key, value, 4.0))
+		QoE[key] = 4.0
     QoE[agentID] = 5.0
-
-    #curCandidates = []
-    #for vd in cached_videos:
-    #   curCandiates.append((vd, agentID, "", ""))
 
     try:
 	con = lite.connect('agens.db')
@@ -504,10 +548,8 @@ def initializeDB():
 	cur.execute("CREATE TABLE QoE(Name TEXT, Addr TEXT, QoE REAL)")
 	cur.execute("CREATE TABLE BW(TS INT, BW INT)")
 	cur.execute("CREATE TABLE DEMAND(TS INT, USERNUM INT)")
-	# cur.execute("CREATE TABLE Candidates(VName TEXT, cand1 TEXT, cand2 TEXT, cand3 TEXT)")
 	cur.executemany("INSERT INTO Agents VALUES(?, ?, ?)", curAgents)
 	cur.executemany("INSERT INTO QoE VALUES(?, ?, ?)", curQoE)
-	# cur.executemany("INSERT INTO Candidates VALUES(?, ?, ?, ?, ?)", curCandidates)
 	con.commit()
 	con.close()
     except lite.Error, e:
@@ -519,7 +561,7 @@ def initializeDB():
 # Main Function of Cache Agent
 #==========================================================================================
 def main(argv):
-    initialize(argv)
+    initialize()
     try:
 	sched = BackgroundScheduler()
 	sched.add_job(bw_monitor, 'interval', seconds=5)
