@@ -126,7 +126,7 @@ def updateQoE(handler, params):
 			print "SQLITE DB Error %s" % e.args[0]
 	answerQoE(handler)
 
-def addPeerQuery(handler, cmdStr):
+def addOverlayPeer(handler, cmdStr):
 	global agentID, peerAgents
 	params = cmdStr.split('&')
 	for param in params:
