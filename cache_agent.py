@@ -10,8 +10,11 @@ import sys
 import urllib2
 import sqlite3 as lite
 import shutil
+import operator
+import requests
 from gcs_upload import *
 from get_cache_agents import *
+from ping import *
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -453,11 +456,11 @@ def getAgentID():
 # ================================================================================
 def add_peer(name, ip):
   global agentID, PORT, peerAgents
-  r = requests.get("http://" + ip + ":" + str(PORT)) + "/overlay?add&peer=" + agentID)
-  if r.status_code == requests.codes.ok:
+  try:
+	r = requests.get("http://" + ip + ":" + str(PORT) + "/overlay?add&peer=" + agentID)
 	peerAgents.append(name)
 	return True
-  else:
+  except requests.ConnectionError, e:
 	return False
 
 # ================================================================================
@@ -470,17 +473,18 @@ def addPeerAgents():
    ## Ping all other agents
    peer_rtts = {}
    for agent in agent_ips.keys():
-	if agent is not agentID:
+	if agent != agentID:
 		rtt = getRTT(agent_ips[agent], 5)
 		mnRtt = sum(rtt) / float(len(rtt))
 		peer_rtts[agent] = mnRtt
 
-  ## Sort all peers by rtts to them
-  sorted_peers = sorted(peer_rtts.items(), key=operator.itemgetter(1))
+   ## Sort all peers by rtts to them
+   sorted_peers = sorted(peer_rtts.items(), key=operator.itemgetter(1))
+   print sorted_peers
 
-  ## Try to add a peer from the closest one
-  for peer in sorted_peers:
-	if add_peer(peer[0], peer[1]):
+   ## Try to add a peer from the closest one
+   for peer in sorted_peers:
+	if add_peer(peer[0], agent_ips[peer[0]]):
 		break
 	
 # ================================================================================
@@ -531,6 +535,8 @@ def initializeDB():
     global driver, con, cur, agentID, PORT, cached_videos, QoE
     agent_ips = get_cache_agent_ips()
     curIP = agent_ips[agentID]
+    curAgents = []
+    curQoE = []
     curAgents.append((agentID, curIP, PORT))
     curQoE.append((agentID, curIP, 5.0))
     for key, value in agent_ips.iteritems():
