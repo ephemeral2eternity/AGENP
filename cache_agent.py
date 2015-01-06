@@ -139,7 +139,7 @@ def answerOverlayQuery(handler):
 	global agentID, peerAgents
 	handler.send_response(200)
 	handler.send_header('Content-type', 'text/html')
-	handler.send_header('Params', {'Peers': peerAgents})
+	handler.send_header('Params', '\n'.join(peerAgents))
 	handler.end_headers()
 	outHtml = "<h2>The peers of agent " + agentID + "</h2><ul>"
 	for peer in peerAgents:
