@@ -10,7 +10,7 @@ from provision import *
 gcs_authenticate("./info/auth.json")
 
 # Download auth.json from google cloud storage
-os.system('gsutil cp gs://agens-storage/auth.json ./info/')
+os.system('gsutil cp gs://agens-info/auth.json ./info/')
 
 # Authenticate GCE
 # Get the driver from an authentication json file which defines the service account, pem file path, datacenter, and project.
@@ -18,8 +18,8 @@ driver = gce_authenticate("./info/auth.json")
 
 # Instances to create
 nodeType = "f1-micro"
-nodeSize = 10
-image = "agens"
+nodeSize = 20
+image = "cache-agent"
 zones = ["asia-east1-a",
 	 "asia-east1-b",
 	 "asia-east1-c",

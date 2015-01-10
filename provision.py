@@ -28,10 +28,13 @@ def provision(driver, nodeType, nodeSize, image, zone, nodeName):
 	# Get the image
 	imageFile = driver.ex_get_image(image)
 
+	# Define scopes
+	sa_scope = [{'scopes' : ['compute', 'storage-full']}]
+
 	# Create a boot disk
 	bootDisk = driver.create_volume(nodeSize, nodeName, location=zone, image=imageFile)
 
 	# Provision a disk
-	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk, use_existing_disk=True)
+	node = driver.create_node(nodeName, nodeType, image, location=zone, ex_network='default', ex_boot_disk=bootDisk, use_existing_disk=True, ex_service_accounts=sa_scopes)
 
 	return node
