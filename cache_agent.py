@@ -135,6 +135,15 @@ def addOverlayPeer(handler, cmdStr):
 			peerAgents.append(items[1])
 	answerOverlayQuery(handler)
 
+def deleteOverlayPeer(handler, cmdStr):
+	global agentID, peerAgents
+	params = cmdStr.split('&')
+	for param in params:
+		if '=' in param:
+			items = param.split('=', 2)
+			peerAgents.remove(items[1])
+	answerOverlayQuery(handler)
+
 def answerOverlayQuery(handler):
 	global agentID, peerAgents
 	handler.send_response(200)
@@ -276,6 +285,8 @@ class MyHandler(BaseHTTPRequestHandler):
 		#	answerOverlayUpdate(self, cmdStr)
 		if 'add' in cmdStr:
 			addOverlayPeer(self, cmdStr)
+		if 'delete' in cmdStr:
+			deleteOverlayPeer(self, cmdStr)
 		return
 
             elif self.path.endswith(".html"):
@@ -564,6 +575,20 @@ def initializeDB():
 	print "SQLITE DB Error %s" % e.args[0]
 
 #==========================================================================================
+# Notify all other peers to delete itself from peer agent list.
+#==========================================================================================
+def deletePeers():
+   global agentID, PORT, peerAgents
+   agent_ips = get_cache_agent_ips()
+   while len(peerAgents) > 0:
+	peer = peerAgents.pop()
+	peer_ip = agent_ips[peer]
+	try:
+		r = requests.get("http://" + peer_ip + ":" + str(PORT) + "/overlay?delete&peer=" + agentID)
+  	except requests.ConnectionError, e:
+		peerAgents.append(peer)
+
+#==========================================================================================
 # Main Function of Cache Agent
 #==========================================================================================
 def main(argv):
@@ -580,6 +605,8 @@ def main(argv):
  
     except KeyboardInterrupt:
         print '^C received, shutting down server'
+	# Delete edges
+	deletePeers()
         server.socket.close()
 	sched.shutdown()
 	# con.close()
