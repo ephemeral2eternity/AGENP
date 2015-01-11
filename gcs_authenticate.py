@@ -3,9 +3,9 @@ import os
 
 def gcs_authenticate(authFile):
 	# Create a service account object
-	serviceAccount = SA(authFile)
+	# serviceAccount = SA(authFile)
 
 	# Activate a service account
-	cmdStr = "gcloud auth activate-service-account " + serviceAccount.account + " --key-file " + serviceAccount.secret
+	#cmdStr = "gcloud auth activate-service-account " + serviceAccount.account + " --key-file " + serviceAccount.secret
 	os.system(cmdStr)
 
