@@ -6,8 +6,8 @@ from gcs_authenticate import *
 from gce_authenticate import *
 from provision import *
 
-# Authenticate GCS (Google Cloud Storage)
-gcs_authenticate("./info/auth.json")
+## Authenticate GCS (Google Cloud Storage)
+# gcs_authenticate("./info/auth.json")
 
 # Download auth.json from google cloud storage
 os.system('gsutil cp gs://agens-info/auth.json ./info/')
@@ -20,17 +20,22 @@ driver = gce_authenticate("./info/auth.json")
 nodeType = "f1-micro"
 nodeSize = 20
 image = "cache-agent"
-zones = ["asia-east1-a",
+#zones = ["asia-east1-a",
+#	 "asia-east1-b",
+#	 "asia-east1-c",
+#	 "europe-west1-b",
+#	 "europe-west1-c",
+#	 "us-central1-a",
+#	 "us-central1-b",
+#	 "us-central1-f"]
+zones = ["us-central1-b",
+	 "us-central1-f",
+	 "asia-east1-a",
 	 "asia-east1-b",
-	 "asia-east1-c",
-	 "europe-west1-b",
-	 "europe-west1-c",
-	 "us-central1-a",
-	 "us-central1-b",
-	 "us-central1-f"]
+	 "asia-east1-c"]
 
 # Provision node in all available zones
-i = 1
+i = 4
 for zone in zones:
 	nodeID = "cache-" + str(i).zfill(2)
 	print "========= Provision f1-micro in Zone " + zone + " ================="
