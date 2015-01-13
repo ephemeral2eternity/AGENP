@@ -24,7 +24,6 @@ import os # os. path
 
 ## Import self-written libraries
 from cache_content import *
-from gce_authenticate import *
 from provision import *
  
 ## Current Path
