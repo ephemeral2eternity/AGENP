@@ -1,5 +1,5 @@
 # Define a function to update a file to a google cloud storage bucket
-from gcs_authenticate import *
+#from gcs_authenticate import *
 import subprocess
 
 def gcs_upload(bucketName, uploadFile):
