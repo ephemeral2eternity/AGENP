@@ -7,5 +7,5 @@ def gcs_authenticate(authFile):
 
 	# Activate a service account
 	#cmdStr = "gcloud auth activate-service-account " + serviceAccount.account + " --key-file " + serviceAccount.secret
-	os.system(cmdStr)
+	# os.system(cmdStr)
 
