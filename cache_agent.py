@@ -359,9 +359,9 @@ def bw_monitor():
 		previousBytes = get_tx_bytes()
 	else:
 		curBytes = get_tx_bytes()
-		out_bw = (curBytes - previousBytes)/5
+		out_bw = (curBytes - previousBytes)*8/(5*1024*1024)
 		previousBytes = curBytes
-		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " bytes/second!"
+		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " Mbps!"
 
 		## Record the bw in bwTraces and dump it per hour 60 * 60 / 5 = 720
 		curTS = time.time()
