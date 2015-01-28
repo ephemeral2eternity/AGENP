@@ -359,7 +359,7 @@ def bw_monitor():
 		previousBytes = get_tx_bytes()
 	else:
 		curBytes = get_tx_bytes()
-		out_bw = (curBytes - previousBytes)*8/(5*1024*1024)
+		out_bw = (curBytes - previousBytes)*8/float(5*1024*1024)
 		previousBytes = curBytes
 		print "[AGENP-Monitoring]Outbound bandwidth is " + str(out_bw) + " Mbps!"
 
