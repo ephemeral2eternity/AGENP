@@ -31,7 +31,6 @@ CWD = os.path.abspath('.')
 
 ## Global Varibles
 PORT = 8615     
-UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server
 # QoE = json.loads(open("./info/QoE.json").read())
 QoE = {}
 agentID = ""
