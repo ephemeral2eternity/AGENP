@@ -20,24 +20,26 @@ driver = gce_authenticate("./info/auth.json")
 nodeType = "f1-micro"
 nodeSize = 20
 image = "cache-agent"
-#zones = ["asia-east1-a",
-#	 "asia-east1-b",
-#	 "asia-east1-c",
-#	 "europe-west1-b",
-#	 "europe-west1-c",
-#	 "us-central1-a",
-#	 "us-central1-b",
-#	 "us-central1-f"]
-zones = ["us-central1-b",
-	 "us-central1-f",
-	 "asia-east1-a",
+zones = ["asia-east1-a",
 	 "asia-east1-b",
-	 "asia-east1-c"]
+	 "asia-east1-c",
+	 "europe-west1-b",
+	 "europe-west1-c",
+	 "us-central1-a",
+	 "us-central1-b",
+	 "us-central1-f"]
+#zones = ["us-central1-b",
+#	 "us-central1-f",
+#	 "asia-east1-a",
+#	 "asia-east1-b",
+#	 "asia-east1-c"]
 
 # Provision node in all available zones
-i = 4
+perzone = 2
+i = 1
 for zone in zones:
-	nodeID = "cache-" + str(i).zfill(2)
-	print "========= Provision f1-micro in Zone " + zone + " ================="
-	node = provision(driver, nodeType, nodeSize, image, zone, nodeID)
-	i = i + 1
+	for n in range(perzone):
+		nodeID = "cache-" + str(i).zfill(2)
+		print "========= Provision f1-micro in Zone " + zone + " ================="
+		node = provision(driver, nodeType, nodeSize, image, zone, nodeID)
+		i = i + 1

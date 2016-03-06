@@ -16,5 +16,6 @@ existing_nodes = driver.list_nodes()
 for node in existing_nodes:
 	# print node.__dict__.keys()
 	# print node.id, node.name, node.public_ips[0], node.size, node.state, node.image
-	print "Deleting node : ", node.name
-	destroy(driver, node.name, node.datacenter)
+	if "cache-" in node.name:
+		print "Deleting node : ", node.name
+		destroy(driver, node.name, node.datacenter)
